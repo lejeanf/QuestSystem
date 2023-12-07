@@ -1,0 +1,21 @@
+{
+  "name":"fr.jeanf.questsystem",
+  "version":"0.0.1",
+  "displayName":"Quest system",
+  "description":"This package uses Scriptable Objects to define quests.",
+  "unity": "2021.3",
+  "keywords": [
+    "jeanf",
+    "quest system"
+  ],
+  "author":{
+    "name":"Jean-François Robin",
+    "email":"robin.jeanfrancois@gmail.com",
+    "url":"https://jeanfrancoisrobin.art"
+  },
+  "dependencies": {
+  },
+  "samples": [ 
+    
+  ]
+}
