@@ -444,7 +444,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 6366255227919844238}
         m_TargetAssemblyTypeName: QuestPoint, Assembly-CSharp
-        m_MethodName: PlayerIsNear
+        m_MethodName: AllClear
         m_Mode: 6
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -459,7 +459,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 6366255227919844238}
         m_TargetAssemblyTypeName: QuestPoint, Assembly-CSharp
-        m_MethodName: PlayerIsNear
+        m_MethodName: AllClear
         m_Mode: 6
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

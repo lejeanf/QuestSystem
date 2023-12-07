@@ -1,115 +1,132 @@
-    using System;
-using System.Collections;
-using System.Collections.Generic;
 using jeanf.EventSystem;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public class QuestItem : MonoBehaviour, IDebugBehaviour
+namespace jeanf.questsystem
 {
-    public bool isDebug
-    { 
-        get => _isDebug;
-        set => _isDebug = value; 
-    }
-    [SerializeField] private bool _isDebug = false;
-    
-    [Tooltip("Visual feedback for the quest state")]
-    
-    
-    [Header("Quest")]
-    [SerializeField] private QuestInfoSO questInfoForPoint;
-    
-    [ReadOnly] [Range(0,1)] [SerializeField] private float progress = 0.0f;
-
-    [Header("Config")]
-    [SerializeField] private bool startPoint = true;
-    [SerializeField] private bool finishPoint = true;
-    
-    [SerializeField] [ReadOnly] private bool playerIsNear = false;
-    private string questId;
-    private QuestState currentQuestState;
-
-    // the event is Located in Assets/Resources/Quests/QuestsProgressChannel - it is searched for at Awake time.
-    private StringFloatEventChannelSO QuestProgress;
-
-    
-
-    private void Awake()
+    public class QuestItem : MonoBehaviour, IDebugBehaviour
     {
-        if (QuestProgress == null)
+        public bool isDebug
         {
-            if(isDebug) Debug.Log("attempting to find Quests/QuestsProgressChannel in the resources folder" ,this);
-            QuestProgress = Resources.Load<StringFloatEventChannelSO>("Quests/QuestsProgressChannel");
-            if(QuestProgress == null) Debug.LogError("Quests/QuestsProgressChannel is not in the resources folder",this);
+            get => _isDebug;
+            set => _isDebug = value;
         }
 
+        [SerializeField] private bool _isDebug = false;
 
-        var questIconPrefab = Instantiate(Resources.Load<GameObject>("Quests/QuestIcon"), this.transform);
-        
-        questId = questInfoForPoint.id;
-    }
+        [Tooltip("Visual feedback for the quest state")] [Header("Quest")] [SerializeField]
+        private QuestInfoSO questInfoForPoint;
 
-    private void OnEnable()
-    {
-        QuestProgress.OnEventRaised += UpdateProgress;
-        GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
-        GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
-    }
+        [ReadOnly] [Range(0, 1)] [SerializeField]
+        private float progress = 0.0f;
 
-    private void OnDisable() => Unsubscribe();
-    private void OnDestroy() => Unsubscribe();
+        [FormerlySerializedAs("playerIsNear")] [SerializeField] [ReadOnly]
+        private bool clearToStart = false;
 
-    private void Unsubscribe()
-    {
-        QuestProgress.OnEventRaised -= UpdateProgress;
-        GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
-        GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
-    }
+        private string questId;
+        private QuestState currentQuestState;
 
-    public void UpdateState()
-    {
-        if (isDebug) Debug.Log($"Updating State...");
-        if (!playerIsNear)
+        // these events are Located in Assets/Resources/Quests/Channels - it is searched for at Awake time.
+        // if they do not exist simply right click in the hierarchy and find >InitializeQuestSystem<
+        private StringFloatEventChannelSO QuestProgress;
+        private StringEventChannelSO StartQuestEventChannel;
+
+        public void OnValidate()
         {
-            return;
-        }
-        if (isDebug) Debug.Log($"Player is near, continuing ...");
+            const string searching = "attempting to find";
+            const string _ = "Quests/Channels"; // search target
+            const string searchLocation = "the resources folder";
+            const string readInstructions = "please read the package instruction for further help";
 
-        // start or finish a quest
-        if (currentQuestState.Equals(QuestState.CAN_START) && startPoint)
-        {
-            if(isDebug) Debug.Log($"Starting quest: {questId}");
-            GameEventsManager.instance.questEvents.StartQuest(questId);
-        }
-        else if (currentQuestState.Equals(QuestState.CAN_FINISH) && finishPoint)
-        {
-            if(isDebug) Debug.Log($"Finishing quest: {questId}");
-            GameEventsManager.instance.questEvents.FinishQuest(questId);
-        }
-    }
+            if (QuestProgress == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestsProgressChannel in {searchLocation} ", this);
+                QuestProgress = Resources.Load<StringFloatEventChannelSO>($"{_}/QuestsProgressChannel");
+                if (QuestProgress == null)
+                    Debug.LogError($"{_}/QuestsProgressChannel is not in {searchLocation} {readInstructions}", this);
+            }
 
-    private void UpdateProgress(string id, float progress)
-    {
-        if (id == questId)
-        {
-            this.progress = progress;
-            if(isDebug) Debug.Log($"questid [{id}] progress = {progress*100}%");
+            if (StartQuestEventChannel == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/StartQuestEventChannel in {searchLocation}", this);
+                StartQuestEventChannel = Resources.Load<StringEventChannelSO>($"{_}/StartQuestEventChannel");
+                if (QuestProgress == null)
+                    Debug.LogError($"{_}/StartQuestEventChannel is not {searchLocation} {readInstructions}", this);
+            }
+
+            questId = questInfoForPoint.id;
         }
 
-    }
-
-    private void QuestStateChange(Quest quest)
-    {
-        // only update the quest state if this point has the corresponding quest
-        if (quest.info.id.Equals(questId))
+        private void OnEnable()
         {
-            currentQuestState = quest.state;
+            StartQuestEventChannel.OnEventRaised += RequestQuestStart;
+            QuestProgress.OnEventRaised += UpdateProgress;
+            GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
+            GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
         }
-    }
 
-    public void PlayerIsNear(bool value)
-    {
-        playerIsNear = value;
-        UpdateState();
+        private void OnDisable() => Unsubscribe();
+        private void OnDestroy() => Unsubscribe();
+
+        private void Unsubscribe()
+        {
+            StartQuestEventChannel.OnEventRaised -= RequestQuestStart;
+            QuestProgress.OnEventRaised -= UpdateProgress;
+            GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
+            GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
+        }
+
+        public void UpdateState()
+        {
+            if (isDebug) Debug.Log($"Updating State...");
+            if (!clearToStart)
+            {
+                return;
+            }
+
+            if (isDebug) Debug.Log($"All is clear, continuing ...");
+
+            // start or finish a quest
+            if (currentQuestState.Equals(QuestState.CAN_START))
+            {
+                if (isDebug) Debug.Log($"Starting quest: {questId}");
+                GameEventsManager.instance.questEvents.StartQuest(questId);
+            }
+            else if (currentQuestState.Equals(QuestState.CAN_FINISH))
+            {
+                if (isDebug) Debug.Log($"Finishing quest: {questId}");
+                GameEventsManager.instance.questEvents.FinishQuest(questId);
+            }
+        }
+
+        private void UpdateProgress(string id, float progress)
+        {
+            if (id == questId)
+            {
+                this.progress = progress;
+                if (isDebug) Debug.Log($"questid [{id}] progress = {progress * 100}%");
+            }
+        }
+
+        private void QuestStateChange(Quest quest)
+        {
+            // only update the quest state if this point has the corresponding quest
+            if (quest.info.id.Equals(questId))
+            {
+                currentQuestState = quest.state;
+            }
+        }
+
+        public void AllClear(bool value)
+        {
+            clearToStart = value;
+            UpdateState();
+        }
+
+        public void RequestQuestStart(string id)
+        {
+            if(id!= questId) return;
+            AllClear(true);
+        }
     }
 }
