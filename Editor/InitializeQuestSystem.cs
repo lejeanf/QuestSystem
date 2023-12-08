@@ -7,6 +7,7 @@ namespace jeanf.questsystem
 {
     public class InitializeQuestSystem : MonoBehaviour
     {
+        #if UNITY_EDITOR  
         [MenuItem("GameObject/Initialize Quest System")]
         private static void initializeQuestSystem()
         {
@@ -71,4 +72,5 @@ namespace jeanf.questsystem
             Selection.activeObject = asset;
         }
     }
+    #endif
 }

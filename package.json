@@ -14,6 +14,7 @@
     "url":"https://jeanfrancoisrobin.art"
   },
   "dependencies": {
+    "fr.jeanf.propertydrawer": "1.1.1"
   },
   "samples": [ 
     
