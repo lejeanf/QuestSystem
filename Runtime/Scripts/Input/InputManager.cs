@@ -6,31 +6,33 @@ using UnityEngine.InputSystem;
 // be sent through the GameEventManager. This lets any other
 // script in the project easily subscribe to an input action
 // without having to deal with the PlayerInput component directly.
-
-[RequireComponent(typeof(PlayerInput))]
-public class InputManager : MonoBehaviour
+namespace jeanf.questsystem
 {
-    public void MovePressed(InputAction.CallbackContext context)
+    [RequireComponent(typeof(PlayerInput))]
+    public class InputManager : MonoBehaviour
     {
-        if (context.performed || context.canceled)
+        public void MovePressed(InputAction.CallbackContext context)
         {
-            GameEventsManager.instance.inputEvents.MovePressed(context.ReadValue<Vector2>());
+            if (context.performed || context.canceled)
+            {
+                GameEventsManager.instance.inputEvents.MovePressed(context.ReadValue<Vector2>());
+            }
         }
-    }
 
-    public void SubmitPressed(InputAction.CallbackContext context)
-    {
-        if (context.started)
+        public void SubmitPressed(InputAction.CallbackContext context)
         {
-            GameEventsManager.instance.inputEvents.SubmitPressed();
+            if (context.started)
+            {
+                GameEventsManager.instance.inputEvents.SubmitPressed();
+            }
         }
-    }
 
-    public void QuestLogTogglePressed(InputAction.CallbackContext context)
-    {
-        if (context.started)
+        public void QuestLogTogglePressed(InputAction.CallbackContext context)
         {
-            GameEventsManager.instance.inputEvents.QuestLogTogglePressed();
+            if (context.started)
+            {
+                GameEventsManager.instance.inputEvents.QuestLogTogglePressed();
+            }
         }
     }
 }

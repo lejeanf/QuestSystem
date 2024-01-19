@@ -1,49 +1,57 @@
 using System;
 
-public class QuestEvents
+namespace jeanf.questsystem
 {
-    public event Action<string> onStartQuest;
-    public void StartQuest(string id)
+    public class QuestEvents
     {
-        if (onStartQuest != null)
-        {
-            onStartQuest(id);
-        }
-    }
+        public event Action<string> onStartQuest;
 
-    public event Action<string> onAdvanceQuest;
-    public void AdvanceQuest(string id)
-    {
-        if (onAdvanceQuest != null)
+        public void StartQuest(string id)
         {
-            onAdvanceQuest(id);
+            if (onStartQuest != null)
+            {
+                onStartQuest(id);
+            }
         }
-    }
 
-    public event Action<string> onFinishQuest;
-    public void FinishQuest(string id)
-    {
-        if (onFinishQuest != null)
+        public event Action<string> onAdvanceQuest;
+
+        public void AdvanceQuest(string id)
         {
-            onFinishQuest(id);
+            if (onAdvanceQuest != null)
+            {
+                onAdvanceQuest(id);
+            }
         }
-    }
 
-    public event Action<Quest> onQuestStateChange;
-    public void QuestStateChange(Quest quest)
-    {
-        if (onQuestStateChange != null)
+        public event Action<string> onFinishQuest;
+
+        public void FinishQuest(string id)
         {
-            onQuestStateChange(quest);
+            if (onFinishQuest != null)
+            {
+                onFinishQuest(id);
+            }
         }
-    }
 
-    public event Action<string, int, QuestStepState> onQuestStepStateChange;
-    public void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
-    {
-        if (onQuestStepStateChange != null)
+        public event Action<Quest> onQuestStateChange;
+
+        public void QuestStateChange(Quest quest)
         {
-            onQuestStepStateChange(id, stepIndex, questStepState);
+            if (onQuestStateChange != null)
+            {
+                onQuestStateChange(quest);
+            }
+        }
+
+        public event Action<string, int, QuestStepState> onQuestStepStateChange;
+
+        public void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
+        {
+            if (onQuestStepStateChange != null)
+            {
+                onQuestStepStateChange(id, stepIndex, questStepState);
+            }
         }
     }
 }

@@ -1,38 +1,48 @@
 using System.Collections;
 using System.Collections.Generic;
+using jeanf.EventSystem;
+using jeanf.propertyDrawer ;
 using UnityEngine;
+using jeanf.propertyDrawer;
 
-public abstract class QuestStep : MonoBehaviour
+namespace jeanf.questsystem
 {
-    private bool isFinished = false;
-    private string questId;
-    private int stepIndex;
-    private float questStepProgress = 0;
-
-    public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
+    public abstract class QuestStep : MonoBehaviour
     {
-        this.questId = questId;
-        this.stepIndex = stepIndex;
-        if (questStepState != null && questStepState != "")
+        private bool isFinished = false;
+        private string questId;
+        private int stepIndex;
+        private float questStepProgress = 0;
+
+        [SerializeField] private bool sendEventOnInit = false;
+        //[DrawIf("sendEventOnInit", true, ComparisonType.Equals)] 
+
+        public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
         {
-            SetQuestStepState(questStepState);
+            this.questId = questId;
+            this.stepIndex = stepIndex;
+            if (questStepState != null && questStepState != "")
+            {
+                SetQuestStepState(questStepState);
+            }
         }
-    }
 
-    protected void FinishQuestStep()
-    {
-        if (!isFinished)
+        protected void FinishQuestStep()
         {
-            isFinished = true;
-            GameEventsManager.instance.questEvents.AdvanceQuest(questId);
-            Destroy(this.gameObject);
+            if (!isFinished)
+            {
+                isFinished = true;
+                GameEventsManager.instance.questEvents.AdvanceQuest(questId);
+                Destroy(this.gameObject);
+            }
         }
-    }
 
-    protected void ChangeState(string newState)
-    {
-        GameEventsManager.instance.questEvents.QuestStepStateChange(questId, stepIndex, new QuestStepState(newState));
-    }
+        protected void ChangeState(string newState)
+        {
+            GameEventsManager.instance.questEvents.QuestStepStateChange(questId, stepIndex,
+                new QuestStepState(newState));
+        }
 
-    protected abstract void SetQuestStepState(string state);
+        protected abstract void SetQuestStepState(string state);
+    }
 }

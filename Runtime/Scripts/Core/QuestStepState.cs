@@ -2,18 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class QuestStepState
+namespace jeanf.questsystem
 {
-    public string state;
-
-    public QuestStepState(string state)
+    [System.Serializable]
+    public class QuestStepState
     {
-        this.state = state;
-    }
+        public string state;
 
-    public QuestStepState()
-    {
-        this.state = "";
+        public QuestStepState(string state)
+        {
+            this.state = state;
+        }
+
+        public QuestStepState()
+        {
+            this.state = "";
+        }
     }
 }

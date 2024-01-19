@@ -1,6 +1,7 @@
 using jeanf.EventSystem;
 using UnityEngine;
 using UnityEngine.Serialization;
+using jeanf.propertyDrawer;
 
 namespace jeanf.questsystem
 {
