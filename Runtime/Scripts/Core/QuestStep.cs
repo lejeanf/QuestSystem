@@ -4,6 +4,7 @@ using jeanf.EventSystem;
 using jeanf.propertyDrawer ;
 using UnityEngine;
 using jeanf.propertyDrawer;
+using UnityEngine.Events;
 
 namespace jeanf.questsystem
 {
@@ -14,8 +15,6 @@ namespace jeanf.questsystem
         private int stepIndex;
         private float questStepProgress = 0;
 
-        [SerializeField] private bool sendEventOnInit = false;
-        //[DrawIf("sendEventOnInit", true, ComparisonType.Equals)] 
 
         public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
         {

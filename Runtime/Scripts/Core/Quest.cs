@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using jeanf.EventSystem;
+using jeanf.propertyDrawer;
 using UnityEngine;
 
 namespace jeanf.questsystem
@@ -14,6 +16,11 @@ namespace jeanf.questsystem
         private int currentQuestStepIndex;
         public int currentStep;
         private QuestStepState[] questStepStates;
+        public StringEventChannelSO messageChannel;
+        public bool sendMessageOnInitialization = false;
+        public string messageToSendOnInit = "";
+        public bool sendMessageOnFinish = false;
+        public string messageToSendOnFinish = "";
 
         public Quest(QuestInfoSO questInfo)
         {
@@ -21,6 +28,13 @@ namespace jeanf.questsystem
             this.state = QuestState.REQUIREMENTS_NOT_MET;
             this.currentQuestStepIndex = currentStep = 0;
             this.questStepStates = new QuestStepState[info.questStepPrefabs.Length];
+            this.messageChannel = questInfo.messageChannel;
+            //init
+            this.sendMessageOnInitialization = questInfo.sendMessageOnInitialization;
+            this.messageToSendOnInit = questInfo.messageToSendOnInitialization;
+            //finish
+            this.sendMessageOnFinish = questInfo.sendMessageOnFinish;
+            this.messageToSendOnFinish = questInfo.messageToSendOnFinish;
             for (int i = 0; i < questStepStates.Length; i++)
             {
                 questStepStates[i] = new QuestStepState();
@@ -46,6 +60,7 @@ namespace jeanf.questsystem
                                  + "Reset your data - as this might cause issues. QuestId: " + this.info.id);
             }
         }
+
 
         public void MoveToNextStep()
         {

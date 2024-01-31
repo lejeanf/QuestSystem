@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using jeanf.EventSystem;
@@ -21,8 +22,6 @@ namespace jeanf.questsystem
 
         [Header("Broadcasting on:")] [SerializeField]
         private StringEventChannelSO questStatusUpdateChannel;
-
-        [Header("Broadcasting on:")] [SerializeField]
         private StringFloatEventChannelSO questProgress;
 
         private Dictionary<string, Quest> questMap;
@@ -121,6 +120,9 @@ namespace jeanf.questsystem
             quest.InstantiateCurrentQuestStep(this.transform);
             ChangeQuestState(quest.info.id, QuestState.IN_PROGRESS);
             SaveQuest(quest);
+            if (!quest.sendMessageOnInitialization) return;
+            quest.messageChannel.RaiseEvent(quest.messageToSendOnInit);
+            if(isDebug) Debug.Log($"quest id:{id}  started, a message was attatched to the initialization: {quest.messageToSendOnInit}");
         }
 
         private void AdvanceQuest(string id)
@@ -135,13 +137,12 @@ namespace jeanf.questsystem
                     this);
             questStatusUpdateChannel.RaiseEvent(
                 $"[{quest.info.id}]quest state: {quest.state} - {quest.currentStep} over {quest.info.questStepPrefabs.Length} steps done");
-            var progress = (float)quest.currentStep / quest.info.questStepPrefabs.Length;
-            if (isDebug) Debug.Log($"[{quest.info.id}] progress: {progress * 100}%", this);
-            questProgress.RaiseEvent(quest.info.id, progress);
 
+            
             // if there are more steps, instantiate the next one
             if (quest.CurrentStepExists())
             {
+                UpdateProgress(quest);
                 quest.InstantiateCurrentQuestStep(this.transform);
             }
             // if there are no more steps, then we've finished all of them for this quest
@@ -153,14 +154,24 @@ namespace jeanf.questsystem
             SaveQuest(quest);
         }
 
+        private void UpdateProgress(Quest quest)
+        {
+            var progress = (float)quest.currentStep / quest.info.questStepPrefabs.Length;
+            if (quest.info.id == null) Debug.Log("C'est null");;
+            if (isDebug) Debug.Log($"[{quest.info.id}] progress: {progress * 100}%", this);
+            questProgress.RaiseEvent(quest.info.id, progress);
+        }
+
         private void FinishQuest(string id)
         {
             Quest quest = GetQuestById(id);
+            UpdateProgress(quest);
             ClaimRewards(quest);
             ChangeQuestState(quest.info.id, QuestState.FINISHED);
             questStatusUpdateChannel.RaiseEvent($"[{quest.info.id}] quest is finished.");
             questProgress.RaiseEvent(quest.info.id, 1);
             SaveQuest(quest);
+            if (!quest.sendMessageOnFinish) return;
         }
 
         private void ClaimRewards(Quest quest)
