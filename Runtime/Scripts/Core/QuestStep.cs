@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using jeanf.EventSystem;
 using jeanf.propertyDrawer ;
 using UnityEngine;
-using jeanf.propertyDrawer;
-using UnityEngine.Events;
+using UnityEngine.Playables;
 
 namespace jeanf.questsystem
 {
@@ -14,6 +11,14 @@ namespace jeanf.questsystem
         private string questId;
         private int stepIndex;
         private float questStepProgress = 0;
+        
+        [Tooltip("This boolean has to be enabled if the quest step has an intro timeline.")]
+        public bool isUsingIntroTimeline = false;
+
+        [DrawIf("isUsingIntroTimeline", true, ComparisonType.Equals, DisablingType.DontDraw)]
+        [SerializeField] private TimelineTriggerEventChannelSO _timelineTriggerEventChannelSo;
+        [DrawIf("isUsingIntroTimeline", true, ComparisonType.Equals, DisablingType.DontDraw)] 
+        [SerializeField] private PlayableAsset timeline;
 
 
         public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
@@ -24,6 +29,11 @@ namespace jeanf.questsystem
             {
                 SetQuestStepState(questStepState);
             }
+
+            if (isUsingIntroTimeline && timeline)
+            {
+                _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
+            }
         }
 
         protected void FinishQuestStep()
@@ -33,6 +43,12 @@ namespace jeanf.questsystem
                 isFinished = true;
                 GameEventsManager.instance.questEvents.AdvanceQuest(questId);
                 Destroy(this.gameObject);
+                
+                
+                if (isUsingIntroTimeline && timeline)
+                {
+                    _timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
+                }
             }
         }
 
