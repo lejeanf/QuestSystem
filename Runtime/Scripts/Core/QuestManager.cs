@@ -200,6 +200,7 @@ namespace jeanf.questsystem
                 }
 
                 idToQuestMap.Add(questInfo.id, LoadQuest(questInfo));
+                if(isDebug) Debug.Log($"Adding {questInfo.name} to the questmap, its id is: {questInfo.id}");
             }
 
             return idToQuestMap;
