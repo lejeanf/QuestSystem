@@ -1,3 +1,4 @@
+ using System;
  using jeanf.EventSystem;
  using UnityEngine;
  using jeanf.propertyDrawer;
@@ -8,7 +9,7 @@
      [ScriptableObjectDrawer]
      public class QuestInfoSO : ScriptableObject
      {
-         public string id { get; private set; }
+         [field: Space(10)][field: ReadOnly] [field: SerializeField] public string id { get; private set; }
 
          [Header("General")] public string displayName;
          
@@ -25,5 +26,18 @@
          [Header("Steps")] public GameObject[] questStepPrefabs;
 
          [Header("Rewards")] public string unlockedScenario;
+         
+         #if UNITY_EDITOR
+         private void OnValidate()
+         {
+             if (id == string.Empty || id == null) GenerateId();
+         }
+        #endif
+
+         public void GenerateId()
+         {
+             id = $"{System.Guid.NewGuid()}";
+             UnityEditor.EditorUtility.SetDirty(this);
+         }
      }
  }
