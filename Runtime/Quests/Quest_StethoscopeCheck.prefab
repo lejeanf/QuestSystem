@@ -166,6 +166,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _isDebug: 1
+  _startQuestOnEnable: 0
   questInfoForPoint: {fileID: 11400000, guid: b7b6381ae7b9c2244862b31a1ce5b2f5, type: 2}
   progress: 0
   clearToStart: 0
+  requirementCheck: {fileID: 0}

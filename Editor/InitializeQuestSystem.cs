@@ -18,6 +18,8 @@ namespace jeanf.questsystem
             var channelFolderPath = $"{questFolderPath}/{channelFolder}";
             
             // files needed
+            var questStatusUpdate = "QuestStatusUpdate.asset";
+            var questRequirementCheck = "QuestRequirementCheck.asset";
             var questProgressChannel = $"QuestsProgressChannel.asset";
             var startQuestEventChannel = $"StartQuestEventChannel.asset";
 
@@ -30,22 +32,24 @@ namespace jeanf.questsystem
                 AssetDatabase.CreateFolder(questFolderPath, channelFolder);
             }
 
-            CreateQuestStartEventChannelFile(channelFolderPath, startQuestEventChannel);
-            CreateQuestProgressChannelFile(channelFolderPath, questProgressChannel);
+            CreateStringEventFile(channelFolderPath, questStatusUpdate);
+            CreateStringEventFile(channelFolderPath, questRequirementCheck);
+            CreateStringEventFile(channelFolderPath, startQuestEventChannel);
+            CreateStringFloatEventFile(channelFolderPath, questProgressChannel);
         }
         
-        public static void CreateQuestStartEventChannelFile(string path, string startEventChannel)
+        public static void CreateStringEventFile(string path, string fileName)
         {
-            if (File.Exists($"{path}/{startEventChannel}"))
+            if (File.Exists($"{path}/{fileName}"))
             {
-                Debug.Log($"file: [{path}/{startEventChannel}] was found.");
+                Debug.Log($"file: [{path}/{fileName}] was found.");
                 return;
             }
 
-            Debug.Log($"file: [{path}/{startEventChannel}] not found. Creating it for you.");
+            Debug.Log($"file: [{path}/{fileName}] not found. Creating it for you.");
             StringEventChannelSO asset = ScriptableObject.CreateInstance<StringEventChannelSO>();
 
-            AssetDatabase.CreateAsset(asset, $"{path}/{startEventChannel}");
+            AssetDatabase.CreateAsset(asset, $"{path}/{fileName}");
             AssetDatabase.SaveAssets();
 
             EditorUtility.FocusProjectWindow();
@@ -53,24 +57,25 @@ namespace jeanf.questsystem
             Selection.activeObject = asset;
         }
 
-        public static void CreateQuestProgressChannelFile(string path, string questProgressChannel)
+        public static void CreateStringFloatEventFile(string path, string fileName)
         {
-            if (File.Exists($"{path}/{questProgressChannel}"))
+            if (File.Exists($"{path}/{fileName}"))
             {
-                Debug.Log($"file: [{path}/{questProgressChannel}] was found.");
+                Debug.Log($"file: [{path}/{fileName}] was found.");
                 return;
             }
 
-            Debug.Log($"file: [{path}/{questProgressChannel}] not found. Creating it for you.");
+            Debug.Log($"file: [{path}/{fileName}] not found. Creating it for you.");
             StringFloatEventChannelSO asset = ScriptableObject.CreateInstance<StringFloatEventChannelSO>();
 
-            AssetDatabase.CreateAsset(asset, $"{path}/{questProgressChannel}");
+            AssetDatabase.CreateAsset(asset, $"{path}/{fileName}");
             AssetDatabase.SaveAssets();
 
             EditorUtility.FocusProjectWindow();
 
             Selection.activeObject = asset;
         }
+        
     }
     #endif
 }

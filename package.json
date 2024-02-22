@@ -1,6 +1,6 @@
 {
   "name":"fr.jeanf.questsystem",
-  "version":"0.0.9",
+  "version":"0.0.10",
   "displayName":"Quest system",
   "description":"This package uses Scriptable Objects to define quests.",
   "unity": "2021.3",

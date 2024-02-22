@@ -1,18 +1,21 @@
 using System;
+using System.Collections.Generic;
 using jeanf.EventSystem;
 using UnityEngine;
 using UnityEngine.Serialization;
 using jeanf.propertyDrawer;
+using jeanf.validationTools;
 
 namespace jeanf.questsystem
 {
-    public class QuestItem : MonoBehaviour, IDebugBehaviour
+    public class QuestItem : MonoBehaviour, IDebugBehaviour, IValidatable
     {
         public bool isDebug
         {
             get => _isDebug;
             set => _isDebug = value;
         }
+        public bool IsValid { get; private set; }
 
         [SerializeField] private bool _isDebug = false;
         [SerializeField] private bool _startQuestOnEnable = false;
@@ -31,36 +34,80 @@ namespace jeanf.questsystem
 
         // these events are Located in Assets/Resources/Quests/Channels - it is searched for at Awake time.
         // if they do not exist simply right click in the hierarchy and find >InitializeQuestSystem<
-        private StringFloatEventChannelSO QuestProgress;
-        private StringEventChannelSO StartQuestEventChannel;
+        [Header("Listening on:")] 
+        [SerializeField] [Validation("A reference to the QuestProgress SO is required")] private StringFloatEventChannelSO QuestProgress;
+        [SerializeField] [Validation("A reference to the StartQuestEventChannel SO is required")] private StringEventChannelSO StartQuestEventChannel;
 
-        [Header("Broadcasting on:")] [SerializeField]
+        [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
         private StringEventChannelSO requirementCheck;
 
         public void OnValidate()
+        {
+            #if UNITY_EDITOR
+            ValididtyCheck();
+            #endif
+            
+            questId = questInfoForPoint.id;
+        }
+
+        private void ValididtyCheck()
         {
             const string searching = "attempting to find";
             const string _ = "Quests/Channels"; // search target
             const string searchLocation = "the resources folder";
             const string readInstructions = "please read the package instruction for further help";
-
+            
+            
+            var validityCheck = true;
+            var invalidObjects = new List<object>();
+            var errorMessages = new List<string>();
+            
             if (QuestProgress == null)
             {
                 if (isDebug) Debug.Log($"{searching} {_}/QuestsProgressChannel in {searchLocation} ", this);
                 QuestProgress = Resources.Load<StringFloatEventChannelSO>($"{_}/QuestsProgressChannel");
                 if (QuestProgress == null)
-                    Debug.LogError($"{_}/QuestsProgressChannel is not in {searchLocation} {readInstructions}", this);
+                {
+                    errorMessages.Add($"{_}/QuestsProgressChannel is not in {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(QuestProgress);
+                }
+
             }
 
             if (StartQuestEventChannel == null)
             {
                 if (isDebug) Debug.Log($"{searching} {_}/StartQuestEventChannel in {searchLocation}", this);
                 StartQuestEventChannel = Resources.Load<StringEventChannelSO>($"{_}/StartQuestEventChannel");
-                if (QuestProgress == null)
-                    Debug.LogError($"{_}/StartQuestEventChannel is not {searchLocation} {readInstructions}", this);
+                if (StartQuestEventChannel == null)
+                {
+                    errorMessages.Add($"{_}/StartQuestEventChannel is not {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(StartQuestEventChannel);
+                }
             }
 
-            questId = questInfoForPoint.id;
+
+            if (requirementCheck == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestRequirementCheck in {searchLocation}", this);
+                requirementCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestRequirementCheck");
+                if (requirementCheck == null)
+                {
+                    errorMessages.Add($"{_}/QuestRequirementCheck is not {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(requirementCheck);
+                }
+            }
+            
+            IsValid = validityCheck;
+            if(!IsValid) return;
+
+            if (IsValid && !Application.isPlaying) return;
+            for(var i = 0 ; i < invalidObjects.Count ; i++)
+            {
+                Debug.LogError($"Error: {errorMessages[i]} " , this.gameObject);
+            }
         }
 
         private void OnEnable()
@@ -152,5 +199,6 @@ namespace jeanf.questsystem
             AllClear(true);
             if(isDebug) Debug.Log($"Quest start was requested for quest {id}.", this);
         }
+
     }
 }

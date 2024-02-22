@@ -2,29 +2,31 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using jeanf.EventSystem;
+using jeanf.validationTools;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace jeanf.questsystem
 {
-    public class QuestManager : MonoBehaviour, IDebugBehaviour
+    public class QuestManager : MonoBehaviour, IDebugBehaviour, IValidatable
     {
         public bool isDebug
         {
             get => _isDebug;
             set => _isDebug = value;
         }
+        public bool IsValid { get; private set; }
 
         [SerializeField] private bool _isDebug = false;
 
         [FormerlySerializedAs("loadQuestState")] [Header("Config")] [SerializeField]
         private bool loadSavedQuestState = true;
 
-        [Header("Broadcasting on:")] [SerializeField]
-        private StringEventChannelSO questStatusUpdateChannel;
-        private StringFloatEventChannelSO questProgress;
+        [Header("Broadcasting on:")]
+        [SerializeField] [Validation("A reference to the questStatusUpdateChannel is required.")] private StringEventChannelSO questStatusUpdateChannel;
+        [SerializeField] [Validation("A reference to the questProgress is required.")] private StringFloatEventChannelSO questProgress;
 
-        [Header("Listening on:")] [SerializeField] private StringEventChannelSO questStatusUpdateRequested;
+        [Header("Listening on:")] [SerializeField] [Validation("A reference to the questStatusUpdateRequested is required.")] private StringEventChannelSO questStatusUpdateRequested;
 
         private Dictionary<string, Quest> questMap;
 
@@ -274,6 +276,69 @@ namespace jeanf.questsystem
             }
 
             return quest;
+        }
+        private void ValididtyCheck()
+        {
+            const string searching = "attempting to find";
+            const string _ = "Quests/Channels"; // search target
+            const string searchLocation = "the resources folder";
+            const string readInstructions = "please read the package instruction for further help";
+            
+            
+            var validityCheck = true;
+            var invalidObjects = new List<object>();
+            var errorMessages = new List<string>();
+            
+            if (questStatusUpdateChannel == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestStatusUpdate in {searchLocation}", this);
+                questStatusUpdateChannel = Resources.Load<StringEventChannelSO>($"{_}/QuestStatusUpdate");
+                if (questStatusUpdateChannel == null)
+                {
+                    errorMessages.Add($"{_}/QuestStatusUpdate is not {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(questStatusUpdateChannel);
+                }
+            }
+            
+            if (questProgress == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestsProgressChannel in {searchLocation}", this);
+                questProgress = Resources.Load<StringFloatEventChannelSO>($"{_}/QuestsProgressChannel");
+                if (questProgress == null)
+                {
+                    errorMessages.Add($"{_}/QuestsProgressChannel is not {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(questProgress);
+                }
+            }
+            
+            if (questStatusUpdateRequested == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestRequirementCheck in {searchLocation}", this);
+                questStatusUpdateRequested = Resources.Load<StringEventChannelSO>($"{_}/QuestRequirementCheck");
+                if (questStatusUpdateRequested == null)
+                {
+                    errorMessages.Add($"{_}/QuestRequirementCheck is not {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(questStatusUpdateRequested);
+                }
+            }
+            
+            IsValid = validityCheck;
+            if(!IsValid) return;
+
+            if (IsValid && !Application.isPlaying) return;
+            for(var i = 0 ; i < invalidObjects.Count ; i++)
+            {
+                Debug.LogError($"Error: {errorMessages[i]} " , this.gameObject);
+            }
+        }
+        public void OnValidate()
+        {
+            #if UNITY_EDITOR
+            ValididtyCheck();
+            #endif
         }
     }
 }
