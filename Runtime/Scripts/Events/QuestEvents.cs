@@ -1,4 +1,7 @@
 using System;
+using jeanf.EventSystem;
+using UnityEditor;
+using UnityEngine;
 
 namespace jeanf.questsystem
 {
@@ -10,6 +13,7 @@ namespace jeanf.questsystem
         {
             if (onStartQuest != null)
             {
+                Debug.Log($"starting quest: {id}");
                 onStartQuest(id);
             }
         }
@@ -20,6 +24,7 @@ namespace jeanf.questsystem
         {
             if (onAdvanceQuest != null)
             {
+                Debug.Log($"advancing quest: {id}");
                 onAdvanceQuest(id);
             }
         }
@@ -30,6 +35,7 @@ namespace jeanf.questsystem
         {
             if (onFinishQuest != null)
             {
+                Debug.Log($"finishing quest: {id}");
                 onFinishQuest(id);
             }
         }
@@ -40,6 +46,7 @@ namespace jeanf.questsystem
         {
             if (onQuestStateChange != null)
             {
+                Debug.Log($"quest state change: {quest.info.id} -- state: {quest.state}");
                 onQuestStateChange(quest);
             }
         }
@@ -50,8 +57,10 @@ namespace jeanf.questsystem
         {
             if (onQuestStepStateChange != null)
             {
+                Debug.Log($"quest step state change: {id} -- stepstate: {questStepState}");
                 onQuestStepStateChange(id, stepIndex, questStepState);
             }
         }
+
     }
 }

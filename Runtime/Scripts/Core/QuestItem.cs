@@ -1,3 +1,4 @@
+using System;
 using jeanf.EventSystem;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -14,6 +15,7 @@ namespace jeanf.questsystem
         }
 
         [SerializeField] private bool _isDebug = false;
+        [SerializeField] private bool _startQuestOnEnable = false;
 
         [Tooltip("Visual feedback for the quest state")] [Header("Quest")] [SerializeField]
         private QuestInfoSO questInfoForPoint;
@@ -21,7 +23,7 @@ namespace jeanf.questsystem
         [ReadOnly] [Range(0, 1)] [SerializeField]
         private float progress = 0.0f;
 
-        [FormerlySerializedAs("playerIsNear")] [SerializeField] [ReadOnly]
+        [SerializeField] [ReadOnly]
         private bool clearToStart = false;
 
         private string questId;
@@ -58,16 +60,17 @@ namespace jeanf.questsystem
             questId = questInfoForPoint.id;
         }
 
-        private void OnEnable()
+        private void OnEnable() => Subscribe();
+        private void OnDisable() => Unsubscribe();
+        private void OnDestroy() => Unsubscribe();
+
+        private void Subscribe()
         {
             StartQuestEventChannel.OnEventRaised += RequestQuestStart;
             QuestProgress.OnEventRaised += UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
         }
-
-        private void OnDisable() => Unsubscribe();
-        private void OnDestroy() => Unsubscribe();
 
         private void Unsubscribe()
         {
@@ -115,6 +118,9 @@ namespace jeanf.questsystem
             if (quest.info.id.Equals(questId))
             {
                 currentQuestState = quest.state;
+                
+                // start on enable option
+                if (_startQuestOnEnable && quest.state == QuestState.CAN_START) RequestQuestStart(quest.info.id);
             }
         }
 
@@ -128,6 +134,7 @@ namespace jeanf.questsystem
         {
             if(id!= questId) return;
             AllClear(true);
+            if(isDebug) Debug.Log($"Quest start was requested for quest {id}.", this);
         }
     }
 }
