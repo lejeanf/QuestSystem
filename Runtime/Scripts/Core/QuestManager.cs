@@ -24,6 +24,8 @@ namespace jeanf.questsystem
         private StringEventChannelSO questStatusUpdateChannel;
         private StringFloatEventChannelSO questProgress;
 
+        [Header("Listening on:")] [SerializeField] private StringEventChannelSO questStatusUpdateRequested;
+
         private Dictionary<string, Quest> questMap;
 
         // quest start requirements
@@ -43,6 +45,8 @@ namespace jeanf.questsystem
             GameEventsManager.instance.questEvents.onQuestStepStateChange += QuestStepStateChange;
 
             GameEventsManager.instance.playerEvents.onPlayerLevelChange += PlayerLevelChange;
+
+            questStatusUpdateRequested.OnEventRaised += ctx => CheckRequirementsMet(questMap[ctx]);
         }
 
         private void OnDisable()
@@ -97,6 +101,8 @@ namespace jeanf.questsystem
                     meetsRequirements = false;
                 }
             }
+            
+            if(isDebug) Debug.Log($"checking requirements for quest: {quest.info.name}, [{quest.info.id}], meetsRequirements: {meetsRequirements}");
 
             return meetsRequirements;
         }

@@ -34,6 +34,9 @@ namespace jeanf.questsystem
         private StringFloatEventChannelSO QuestProgress;
         private StringEventChannelSO StartQuestEventChannel;
 
+        [Header("Broadcasting on:")] [SerializeField]
+        private StringEventChannelSO requirementCheck;
+
         public void OnValidate()
         {
             const string searching = "attempting to find";
@@ -60,7 +63,15 @@ namespace jeanf.questsystem
             questId = questInfoForPoint.id;
         }
 
-        private void OnEnable() => Subscribe();
+        private void OnEnable()
+        {
+            Subscribe();
+
+            requirementCheck.RaiseEvent(questId);
+            if (!_startQuestOnEnable) return;
+            RequestQuestStart(questId);
+        }
+
         private void OnDisable() => Unsubscribe();
         private void OnDestroy() => Unsubscribe();
 
@@ -90,6 +101,12 @@ namespace jeanf.questsystem
 
             if (isDebug) Debug.Log($"All is clear, continuing ...");
 
+            if (currentQuestState.Equals(QuestState.REQUIREMENTS_NOT_MET) && _startQuestOnEnable)
+            {
+                if(isDebug) Debug.Log($"forcing start of quest: {questId}");
+                GameEventsManager.instance.questEvents.StartQuest(questId);
+            }
+
             // start or finish a quest
             if (currentQuestState.Equals(QuestState.CAN_START))
             {
@@ -118,15 +135,14 @@ namespace jeanf.questsystem
             if (quest.info.id.Equals(questId))
             {
                 currentQuestState = quest.state;
-                
-                // start on enable option
-                if (_startQuestOnEnable && quest.state == QuestState.CAN_START) RequestQuestStart(quest.info.id);
             }
         }
 
         public void AllClear(bool value)
         {
             clearToStart = value;
+            currentQuestState = QuestState.CAN_START;
+            requirementCheck.RaiseEvent(questId);
             UpdateState();
         }
 
