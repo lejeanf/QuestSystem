@@ -18,7 +18,7 @@ namespace jeanf.questsystem
         [DrawIf("isUsingIntroTimeline", true, ComparisonType.Equals, DisablingType.DontDraw)]
         [SerializeField] private TimelineTriggerEventChannelSO _timelineTriggerEventChannelSo;
         [DrawIf("isUsingIntroTimeline", true, ComparisonType.Equals, DisablingType.DontDraw)] 
-        [SerializeField] private PlayableAsset timeline;
+        public PlayableAsset timeline;
 
 
         public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
