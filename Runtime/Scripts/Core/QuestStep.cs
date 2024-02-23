@@ -5,7 +5,7 @@ using UnityEngine.Playables;
 
 namespace jeanf.questsystem
 {
-    public abstract class QuestStep : MonoBehaviour
+    public abstract class QuestStep : MonoBehaviour, IDebugBehaviour
     {
         private bool isFinished = false;
         private string questId;
@@ -32,6 +32,7 @@ namespace jeanf.questsystem
 
             if (isUsingIntroTimeline && timeline)
             {
+                if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
                 _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
             }
         }
@@ -47,7 +48,8 @@ namespace jeanf.questsystem
                 
                 if (isUsingIntroTimeline && timeline)
                 {
-                    _timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
+                    if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");
+                    //_timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
                 }
             }
         }
@@ -59,5 +61,6 @@ namespace jeanf.questsystem
         }
 
         protected abstract void SetQuestStepState(string state);
+        public bool isDebug { get; set; }
     }
 }
