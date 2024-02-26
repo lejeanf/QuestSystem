@@ -21,6 +21,8 @@ namespace jeanf.questsystem
         public PlayableAsset timeline;
 
 
+        [Header("Events")]
+        [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
         public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
         {
             this.questId = questId;
@@ -28,8 +30,9 @@ namespace jeanf.questsystem
             if (questStepState != null && questStepState != "")
             {
                 SetQuestStepState(questStepState);
+                
             }
-
+            DisplayActiveQuestStep();
             if (isUsingIntroTimeline && timeline)
             {
                 if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
@@ -60,6 +63,11 @@ namespace jeanf.questsystem
                 new QuestStepState(newState));
         }
 
+        protected void DisplayActiveQuestStep()
+        {
+            sendQuestStepTooltip.RaiseEvent("questStepToSend");
+
+        }
         protected abstract void SetQuestStepState(string state);
         public bool isDebug { get; set; }
     }
