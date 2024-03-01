@@ -44,13 +44,13 @@ namespace jeanf.questsystem
         public void OnValidate()
         {
             #if UNITY_EDITOR
-            ValididtyCheck();
+            ValidityCheck();
             #endif
             
             questId = questInfoForPoint.id;
         }
 
-        private void ValididtyCheck()
+        private void ValidityCheck()
         {
             const string searching = "attempting to find";
             const string _ = "Quests/Channels"; // search target
