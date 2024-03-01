@@ -32,12 +32,12 @@
          {
              if (id == string.Empty || id == null) GenerateId();
          }
-        #endif
 
          public void GenerateId()
          {
              id = $"{System.Guid.NewGuid()}";
              UnityEditor.EditorUtility.SetDirty(this);
          }
+        #endif
      }
  }
