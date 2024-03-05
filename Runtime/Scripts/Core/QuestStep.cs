@@ -32,7 +32,10 @@ namespace jeanf.questsystem
                 SetQuestStepState(questStepState);
                 
             }
-            DisplayActiveQuestStep();
+            if (sendQuestStepTooltip != null)
+            {
+                DisplayActiveQuestStep();
+            }
             if (isUsingIntroTimeline && timeline)
             {
                 if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
