@@ -1,5 +1,6 @@
 using jeanf.EventSystem;
 using jeanf.propertyDrawer ;
+using jeanf.tooltip;
 using UnityEngine;
 using UnityEngine.Playables;
 
@@ -21,8 +22,12 @@ namespace jeanf.questsystem
         public PlayableAsset timeline;
 
 
-        [Header("Events")]
+        [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
+
+        [Header("Quest Tooltip")]
+        [SerializeField] private QuestTooltipSO questTooltipSO;
+
         public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
         {
             this.questId = questId;
@@ -68,8 +73,10 @@ namespace jeanf.questsystem
 
         protected void DisplayActiveQuestStep()
         {
-            sendQuestStepTooltip.RaiseEvent("questStepToSend");
-
+            if (questTooltipSO != null)
+            {
+                sendQuestStepTooltip.RaiseEvent(questTooltipSO.Tooltip);
+            }
         }
         protected abstract void SetQuestStepState(string state);
         public bool isDebug { get; set; }
