@@ -41,11 +41,15 @@ namespace jeanf.questsystem
         [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
         private StringEventChannelSO requirementCheck;
 
+        private void Awake()
+        {
+            questId = questInfoForPoint.id;
+        }
+
         #if UNITY_EDITOR
         public void OnValidate()
         {
             ValidityCheck();
-            questId = questInfoForPoint.id;
         }
         #endif
 

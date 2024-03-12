@@ -9,7 +9,7 @@
      [ScriptableObjectDrawer]
      public class QuestInfoSO : ScriptableObject
      {
-         [field: Space(10)][field: ReadOnly] [field: SerializeField] public string id { get; private set; }
+         [field: Space(10)] [field: ReadOnly] [SerializeField] public string id = string.Empty;
 
          [Header("General")] public string displayName;
          
