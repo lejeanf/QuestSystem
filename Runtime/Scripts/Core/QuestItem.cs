@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Codice.CM.Common;
 using jeanf.EventSystem;
 using UnityEngine;
-using UnityEngine.Serialization;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
 

@@ -37,6 +37,11 @@ namespace jeanf.questsystem
         private void Awake()
         {
             questMap = CreateQuestMap();
+
+            foreach (var quest in questMap)
+            {
+                CheckIfQuestIsAlreadyLoaded(quest.Key);
+            }
         }
 
         private void OnEnable()
@@ -216,7 +221,6 @@ namespace jeanf.questsystem
                 else
                 {
                     questMap.Add(id, LoadQuest(questInfo));
-                    CheckIfQuestIsAlreadyLoaded(id);
                 }
                 if(isDebug) Debug.Log($"Adding {questInfo.name} to the questmap, its id is: {questInfo.id}");
             }
