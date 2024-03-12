@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Codice.CM.Common;
 using jeanf.EventSystem;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -37,18 +38,18 @@ namespace jeanf.questsystem
         [Header("Listening on:")] 
         [SerializeField] [Validation("A reference to the QuestProgress SO is required")] private StringFloatEventChannelSO QuestProgress;
         [SerializeField] [Validation("A reference to the StartQuestEventChannel SO is required")] private StringEventChannelSO StartQuestEventChannel;
+        [SerializeField] [Validation("A reference to the QuestInitialCheck SO is required")] private StringEventChannelSO QuestInitialCheck;
 
         [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
         private StringEventChannelSO requirementCheck;
 
+        #if UNITY_EDITOR
         public void OnValidate()
         {
-            #if UNITY_EDITOR
             ValidityCheck();
-            #endif
-            
             questId = questInfoForPoint.id;
         }
+        #endif
 
         private void ValidityCheck()
         {
@@ -61,6 +62,20 @@ namespace jeanf.questsystem
             var validityCheck = true;
             var invalidObjects = new List<object>();
             var errorMessages = new List<string>();
+            
+            
+            if (QuestInitialCheck == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestInitialCheck in {searchLocation} ", this);
+                QuestInitialCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestInitialCheck");
+                if (QuestProgress == null)
+                {
+                    errorMessages.Add($"{_}/QuestInitialCheck is not in {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(QuestProgress);
+                }
+
+            }
             
             if (QuestProgress == null)
             {
@@ -101,9 +116,10 @@ namespace jeanf.questsystem
             }
             
             IsValid = validityCheck;
+            
             if(!IsValid) return;
-
             if (IsValid && !Application.isPlaying) return;
+            
             for(var i = 0 ; i < invalidObjects.Count ; i++)
             {
                 Debug.LogError($"Error: {errorMessages[i]} " , this.gameObject);
@@ -113,10 +129,22 @@ namespace jeanf.questsystem
         private void OnEnable()
         {
             Subscribe();
+    
+            Init(questId);
+        }
 
-            requirementCheck.RaiseEvent(questId);
+        private void Init(string id)
+        {
+            
+            Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
             if (!_startQuestOnEnable) return;
             RequestQuestStart(questId);
+        }
+
+        private void InitialCheckFromQuestManager( string id)
+        {
+            Debug.Log($"Initial check for quest with id: [{id}], it is in the following state: [{currentQuestState}]");
+            Init(id);
         }
 
         private void OnDisable() => Unsubscribe();
@@ -124,6 +152,7 @@ namespace jeanf.questsystem
 
         private void Subscribe()
         {
+            QuestInitialCheck.OnEventRaised += InitialCheckFromQuestManager;
             StartQuestEventChannel.OnEventRaised += RequestQuestStart;
             QuestProgress.OnEventRaised += UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
@@ -132,48 +161,54 @@ namespace jeanf.questsystem
 
         private void Unsubscribe()
         {
+            QuestInitialCheck.OnEventRaised -= InitialCheckFromQuestManager;
             StartQuestEventChannel.OnEventRaised -= RequestQuestStart;
             QuestProgress.OnEventRaised -= UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
         }
 
-        public void UpdateState()
+        private void UpdateState()
         {
             if (isDebug) Debug.Log($"Updating State...");
-            if (!clearToStart)
-            {
-                return;
-            }
-
+            if (!clearToStart) return;
             if (isDebug) Debug.Log($"All is clear, continuing ...");
 
-            if (currentQuestState.Equals(QuestState.REQUIREMENTS_NOT_MET) && _startQuestOnEnable)
+            switch (currentQuestState)
             {
-                if(isDebug) Debug.Log($"forcing start of quest: {questId}");
-                GameEventsManager.instance.questEvents.StartQuest(questId);
-            }
-
-            // start or finish a quest
-            if (currentQuestState.Equals(QuestState.CAN_START))
-            {
-                if (isDebug) Debug.Log($"Starting quest: {questId}");
-                GameEventsManager.instance.questEvents.StartQuest(questId);
-            }
-            else if (currentQuestState.Equals(QuestState.CAN_FINISH))
-            {
-                if (isDebug) Debug.Log($"Finishing quest: {questId}");
-                GameEventsManager.instance.questEvents.FinishQuest(questId);
+                case QuestState.CAN_START:
+                {
+                    if (isDebug) Debug.Log($"Starting quest: {questId}");
+                    GameEventsManager.instance.questEvents.StartQuest(questId);
+                    break;
+                }
+                case QuestState.CAN_FINISH:
+                {
+                    if (isDebug) Debug.Log($"Finishing quest: {questId}");
+                    GameEventsManager.instance.questEvents.FinishQuest(questId);
+                    break;
+                }
+                case QuestState.REQUIREMENTS_NOT_MET:
+                    if(_startQuestOnEnable)
+                    {
+                        if(isDebug) Debug.Log($"forcing start of quest: {questId}");
+                        GameEventsManager.instance.questEvents.StartQuest(questId);
+                    }
+                    break;
+                case QuestState.IN_PROGRESS:
+                    break;
+                case QuestState.FINISHED:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
         private void UpdateProgress(string id, float progress)
         {
-            if (id == questId)
-            {
-                this.progress = progress;
-                if (isDebug) Debug.Log($"questid [{id}] progress = {progress * 100}%");
-            }
+            if (id != questId) return;
+            this.progress = progress;
+            if (isDebug) Debug.Log($"questid [{id}] progress = {progress * 100}%");
         }
 
         private void QuestStateChange(Quest quest)
@@ -187,15 +222,18 @@ namespace jeanf.questsystem
 
         public void AllClear(bool value)
         {
+            Debug.Log($"All clear for quest [{questId}], sending an update to the QuestManager");
             clearToStart = value;
             currentQuestState = QuestState.CAN_START;
             requirementCheck.RaiseEvent(questId);
             UpdateState();
         }
 
-        public void RequestQuestStart(string id)
+        private void RequestQuestStart(string id)
         {
             if(id!= questId) return;
+            
+            Debug.Log($"Requesting start for quest [{id}]");
             AllClear(true);
             if(isDebug) Debug.Log($"Quest start was requested for quest {id}.", this);
         }

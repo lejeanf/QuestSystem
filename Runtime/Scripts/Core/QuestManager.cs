@@ -25,6 +25,7 @@ namespace jeanf.questsystem
         [Header("Broadcasting on:")]
         [SerializeField] [Validation("A reference to the questStatusUpdateChannel is required.")] private StringEventChannelSO questStatusUpdateChannel;
         [SerializeField] [Validation("A reference to the questProgress is required.")] private StringFloatEventChannelSO questProgress;
+        [SerializeField] [Validation("A reference to the questInitialCheck channel is required.")] private StringEventChannelSO QuestInitialCheck;
 
         [Header("Listening on:")] [SerializeField] [Validation("A reference to the questStatusUpdateRequested is required.")] private StringEventChannelSO questStatusUpdateRequested;
 
@@ -76,6 +77,11 @@ namespace jeanf.questsystem
                 // broadcast the initial state of all quests on startup
                 GameEventsManager.instance.questEvents.QuestStateChange(quest);
             }
+        }
+
+        private void CheckIfQuestIsAlreadyLoaded(string id)
+        {
+            QuestInitialCheck.RaiseEvent(id);
         }
 
         private void ChangeQuestState(string id, QuestState state)
@@ -199,19 +205,23 @@ namespace jeanf.questsystem
             // loads all QuestInfoSO Scriptable Objects under the Assets/Resources/Quests folder
             QuestInfoSO[] allQuests = Resources.LoadAll<QuestInfoSO>("Quests");
             // Create the quest map
-            Dictionary<string, Quest> idToQuestMap = new Dictionary<string, Quest>();
+            Dictionary<string, Quest> questMap = new Dictionary<string, Quest>();
             foreach (QuestInfoSO questInfo in allQuests)
             {
-                if (idToQuestMap.ContainsKey(questInfo.id))
+                var id = questInfo.id;
+                if (questMap.ContainsKey(id))
                 {
                     Debug.LogWarning("Duplicate ID found when creating quest map: " + questInfo.id);
                 }
-
-                idToQuestMap.Add(questInfo.id, LoadQuest(questInfo));
+                else
+                {
+                    questMap.Add(id, LoadQuest(questInfo));
+                    CheckIfQuestIsAlreadyLoaded(id);
+                }
                 if(isDebug) Debug.Log($"Adding {questInfo.name} to the questmap, its id is: {questInfo.id}");
             }
 
-            return idToQuestMap;
+            return questMap;
         }
 
         private Quest GetQuestById(string id)
@@ -288,6 +298,18 @@ namespace jeanf.questsystem
             var validityCheck = true;
             var invalidObjects = new List<object>();
             var errorMessages = new List<string>();
+            
+            if (QuestInitialCheck == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestInitialCheck in {searchLocation}", this);
+                QuestInitialCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestInitialCheck");
+                if (QuestInitialCheck == null)
+                {
+                    errorMessages.Add($"{_}/QuestInitialCheck is not {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(QuestInitialCheck);
+                }
+            }
             
             if (questStatusUpdateChannel == null)
             {
