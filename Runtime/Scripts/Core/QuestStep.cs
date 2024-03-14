@@ -50,19 +50,15 @@ namespace jeanf.questsystem
 
         protected void FinishQuestStep()
         {
-            if (!isFinished)
-            {
-                isFinished = true;
-                GameEventsManager.instance.questEvents.AdvanceQuest(questId);
-                Destroy(this.gameObject);
-                
-                
-                if (isUsingIntroTimeline && timeline)
-                {
-                    if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");
-                    //_timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
-                }
-            }
+            if (isFinished) return;
+            isFinished = true;
+            if(questId != null) GameEventsManager.instance.questEvents.AdvanceQuest(questId);
+            if(this.gameObject) Destroy(this.gameObject);
+
+
+            if (!isUsingIntroTimeline || !timeline) return;
+            //if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");
+            //_timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
         }
 
         protected void ChangeState(string newState)
