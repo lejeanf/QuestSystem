@@ -52,7 +52,7 @@ namespace jeanf.questsystem
         {
             if (isFinished) return;
             isFinished = true;
-            if (sendQuestStepTooltip == null)
+            if (sendQuestStepTooltip != null)
             {
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
             }
