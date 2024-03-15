@@ -5,7 +5,7 @@ using jeanf.tooltip;
 
 namespace jeanf.questsystem
 {
-    [CreateAssetMenu(fileName = "ControlsTooltipSO", menuName = "Tooltips/QuestTooltipSO", order = 1)]
+    [CreateAssetMenu(fileName = "QuestTooltipSO", menuName = "Tooltips/QuestTooltipSO", order = 1)]
     public class QuestTooltipSO : TooltipSO
     {
         public string tooltipToSend;
