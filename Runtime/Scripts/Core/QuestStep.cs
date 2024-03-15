@@ -52,6 +52,10 @@ namespace jeanf.questsystem
         {
             if (isFinished) return;
             isFinished = true;
+            if (sendQuestStepTooltip == null)
+            {
+                sendQuestStepTooltip.RaiseEvent(string.Empty);
+            }
             if(questId != null) GameEventsManager.instance.questEvents.AdvanceQuest(questId);
             if(this.gameObject) Destroy(this.gameObject);
 
