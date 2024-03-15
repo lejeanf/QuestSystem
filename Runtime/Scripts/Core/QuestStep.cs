@@ -73,10 +73,6 @@ namespace jeanf.questsystem
             {
                 sendQuestStepTooltip.RaiseEvent(questTooltipSO.Tooltip);
             }
-            else if (questTooltipSO == null)
-            {
-                sendQuestStepTooltip.RaiseEvent(string.Empty);
-            }
         }
         protected abstract void SetQuestStepState(string state);
         public bool isDebug { get; set; }
