@@ -28,6 +28,10 @@ namespace jeanf.questsystem
         [Header("Quest Tooltip")]
         [SerializeField] private QuestTooltipSO questTooltipSO;
 
+        [Header("Game Objects to Trigger")]
+        [SerializeField] QuestInfoSO[] gameObjectsToTriggerOnStart;
+        [SerializeField] QuestInfoSO[] gameObjectsToTriggerOnEnd;
+
         public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
         {
             this.questId = questId;
@@ -41,11 +45,20 @@ namespace jeanf.questsystem
             {
                 DisplayActiveQuestStep();
             }
+            if (gameObjectsToTriggerOnStart != null)
+            {
+                foreach (QuestInfoSO questInfoSO in gameObjectsToTriggerOnStart)
+                {
+                    GameEventsManager.instance.questEvents.StartQuest(questInfoSO.id);
+                }
+            }
             if (isUsingIntroTimeline && timeline)
             {
                 if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
                 _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
             }
+            
+
         }
 
         protected void FinishQuestStep()
@@ -59,10 +72,18 @@ namespace jeanf.questsystem
             if(questId != null) GameEventsManager.instance.questEvents.AdvanceQuest(questId);
             if(this.gameObject) Destroy(this.gameObject);
 
+            if (gameObjectsToTriggerOnEnd != null)
+            {
+                foreach (QuestInfoSO questInfoSO in gameObjectsToTriggerOnEnd)
+                {
+                    GameEventsManager.instance.questEvents.StartQuest(questInfoSO.id);
+                }
+            }
 
             if (!isUsingIntroTimeline || !timeline) return;
             //if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");
             //_timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
+
         }
 
         protected void ChangeState(string newState)

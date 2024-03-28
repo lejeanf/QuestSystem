@@ -21,7 +21,6 @@ namespace jeanf.questsystem
         public string messageToSendOnInit = "";
         public bool sendMessageOnFinish = false;
         public string messageToSendOnFinish = "";
-
         public Quest(QuestInfoSO questInfo)
         {
             this.info = questInfo;

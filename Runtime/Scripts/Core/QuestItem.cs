@@ -140,7 +140,7 @@ namespace jeanf.questsystem
             
             Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
             if (!_startQuestOnEnable) return;
-            RequestQuestStart(questId);
+            RequestQuestStart(id);
         }
 
         private void InitialCheckFromQuestManager( string id)
@@ -219,6 +219,7 @@ namespace jeanf.questsystem
             if (quest.info.id.Equals(questId))
             {
                 currentQuestState = quest.state;
+                UpdateState();
             }
         }
 

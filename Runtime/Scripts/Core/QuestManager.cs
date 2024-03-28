@@ -154,8 +154,8 @@ namespace jeanf.questsystem
                 Debug.Log(
                     $"[{quest.info.id}]quest state: {quest.state} - {quest.currentStep} over {quest.info.questStepPrefabs.Length} steps done",
                     this);
-            questStatusUpdateChannel.RaiseEvent(
-                $"[{quest.info.id}]quest state: {quest.state} - {quest.currentStep} over {quest.info.questStepPrefabs.Length} steps done");
+            questStatusUpdateChannel.RaiseEvent(quest.info.id);
+
 
             
             // if there are more steps, instantiate the next one
@@ -187,7 +187,7 @@ namespace jeanf.questsystem
             UpdateProgress(quest);
             ClaimRewards(quest);
             ChangeQuestState(quest.info.id, QuestState.FINISHED);
-            questStatusUpdateChannel.RaiseEvent($"[{quest.info.id}] quest is finished.");
+            questStatusUpdateChannel.RaiseEvent(quest.info.id);
             questProgress.RaiseEvent(quest.info.id, 1);
             SaveQuest(quest);
             if (!quest.sendMessageOnFinish) return;
