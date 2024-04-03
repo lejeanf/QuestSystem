@@ -29,8 +29,8 @@ namespace jeanf.questsystem
         [SerializeField] private QuestTooltipSO questTooltipSO;
 
         [Header("Game Objects to Trigger")]
-        [SerializeField] QuestInfoSO[] gameObjectsToTriggerOnStart;
-        [SerializeField] QuestInfoSO[] gameObjectsToTriggerOnEnd;
+        [SerializeField] QuestStep[] questStepsToTriggerOnStart;
+        [SerializeField] QuestStep[] questStepsToTriggerOnEnd;
 
         public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
         {
@@ -45,11 +45,12 @@ namespace jeanf.questsystem
             {
                 DisplayActiveQuestStep();
             }
-            if (gameObjectsToTriggerOnStart != null)
+
+            if (questStepsToTriggerOnStart != null)
             {
-                foreach (QuestInfoSO questInfoSO in gameObjectsToTriggerOnStart)
+                foreach (QuestStep questStep in questStepsToTriggerOnStart)
                 {
-                    GameEventsManager.instance.questEvents.StartQuest(questInfoSO.id);
+                    Instantiate(questStep, this.transform.parent);
                 }
             }
             if (isUsingIntroTimeline && timeline)
@@ -63,6 +64,13 @@ namespace jeanf.questsystem
 
         protected void FinishQuestStep()
         {
+            if (questStepsToTriggerOnEnd != null)
+            {
+                foreach (QuestStep questStep in questStepsToTriggerOnEnd)
+                {
+                    Instantiate(questStep, this.transform.parent);
+                }
+            }
             if (isFinished) return;
             isFinished = true;
             if (sendQuestStepTooltip != null)
@@ -71,14 +79,7 @@ namespace jeanf.questsystem
             }
             if(questId != null) GameEventsManager.instance.questEvents.AdvanceQuest(questId);
             if(this.gameObject) Destroy(this.gameObject);
-
-            if (gameObjectsToTriggerOnEnd != null)
-            {
-                foreach (QuestInfoSO questInfoSO in gameObjectsToTriggerOnEnd)
-                {
-                    GameEventsManager.instance.questEvents.StartQuest(questInfoSO.id);
-                }
-            }
+            
 
             if (!isUsingIntroTimeline || !timeline) return;
             //if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");

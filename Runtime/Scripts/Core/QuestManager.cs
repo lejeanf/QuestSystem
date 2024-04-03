@@ -73,11 +73,11 @@ namespace jeanf.questsystem
 
             foreach (Quest quest in questMap.Values)
             {
-                // initialize any loaded quest steps
-                if (quest.state == QuestState.IN_PROGRESS)
-                {
-                    quest.InstantiateCurrentQuestStep(this.transform);
-                }
+                //// initialize any loaded quest steps
+                //if (quest.state == QuestState.IN_PROGRESS)
+                //{
+                //    quest.InstantiateCurrentQuestStep(this.transform);
+                //}
 
                 // broadcast the initial state of all quests on startup
                 GameEventsManager.instance.questEvents.QuestStateChange(quest);
