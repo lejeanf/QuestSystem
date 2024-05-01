@@ -9,7 +9,7 @@ namespace jeanf.questsystem
     [ScriptableObjectDrawer]
     public class StepQuestRequirement : QuestRequirementSO
     {
-        QuestStep questStep;
+        [SerializeField] QuestStep questStep;
         [SerializeField] QuestStepStatus requiredStatus;
         public override bool ValidateFulfilled()
         {

@@ -80,6 +80,7 @@ namespace jeanf.questsystem
                         Instantiate(questStep, questStep.transform.position, Quaternion.identity);
                         questStep.InitializeQuestStep();
                     }
+                    Debug.Log(questStep.ValidateRequirements());
                 }
             }
 
