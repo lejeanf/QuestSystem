@@ -9,10 +9,11 @@ namespace jeanf.questsystem
     public abstract class QuestStep : MonoBehaviour, IDebugBehaviour
     {
         private bool isFinished = false;
-        private string questId;
-        private int stepIndex;
+        private bool isActive = false;
+        private string stepId;
         private float questStepProgress = 0;
-        
+        [SerializeField] QuestStepStatus stepStatus;
+
         [Tooltip("This boolean has to be enabled if the quest step has an intro timeline.")]
         public bool isUsingIntroTimeline = false;
 
@@ -29,27 +30,26 @@ namespace jeanf.questsystem
         [SerializeField] private QuestTooltipSO questTooltipSO;
 
         [Header("Game Objects to Trigger")]
-        [SerializeField] QuestInfoSO[] gameObjectsToTriggerOnStart;
-        [SerializeField] QuestInfoSO[] gameObjectsToTriggerOnEnd;
+        [SerializeField] QuestStep[] gameObjectsToTriggerOnStart;
+        [SerializeField] QuestStep[] gameObjectsToTriggerOnEnd;
+        [SerializeField] QuestRequirementSO[] questRequirementSOList;
 
-        public void InitializeQuestStep(string questId, int stepIndex, string questStepState)
+        public void InitializeQuestStep()
         {
-            this.questId = questId;
-            this.stepIndex = stepIndex;
-            if (questStepState != null && questStepState != "")
-            {
-                SetQuestStepState(questStepState);
-                
-            }
+            stepStatus = QuestStepStatus.InProgress;
             if (sendQuestStepTooltip != null)
             {
                 DisplayActiveQuestStep();
             }
             if (gameObjectsToTriggerOnStart != null)
             {
-                foreach (QuestInfoSO questInfoSO in gameObjectsToTriggerOnStart)
+                foreach (QuestStep questStep in gameObjectsToTriggerOnStart)
                 {
-                    GameEventsManager.instance.questEvents.StartQuest(questInfoSO.id);
+                    if (questStep.ValidateRequirements())
+                    {
+                        Instantiate(questStep, questStep.transform.position, Quaternion.identity);
+                        questStep.InitializeQuestStep();
+                    }
                 }
             }
             if (isUsingIntroTimeline && timeline)
@@ -63,20 +63,23 @@ namespace jeanf.questsystem
 
         protected void FinishQuestStep()
         {
-            if (isFinished) return;
-            isFinished = true;
+            stepStatus = QuestStepStatus.Finished;
+
             if (sendQuestStepTooltip != null)
             {
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
             }
-            if(questId != null) GameEventsManager.instance.questEvents.AdvanceQuest(questId);
             if(this.gameObject) Destroy(this.gameObject);
 
             if (gameObjectsToTriggerOnEnd != null)
             {
-                foreach (QuestInfoSO questInfoSO in gameObjectsToTriggerOnEnd)
+                foreach (QuestStep questStep in gameObjectsToTriggerOnEnd)
                 {
-                    GameEventsManager.instance.questEvents.StartQuest(questInfoSO.id);
+                    if (questStep.ValidateRequirements())
+                    {
+                        Instantiate(questStep, questStep.transform.position, Quaternion.identity);
+                        questStep.InitializeQuestStep();
+                    }
                 }
             }
 
@@ -86,11 +89,6 @@ namespace jeanf.questsystem
 
         }
 
-        protected void ChangeState(string newState)
-        {
-            GameEventsManager.instance.questEvents.QuestStepStateChange(questId, stepIndex,
-                new QuestStepState(newState));
-        }
 
         protected void DisplayActiveQuestStep()
         {
@@ -99,7 +97,44 @@ namespace jeanf.questsystem
                 sendQuestStepTooltip.RaiseEvent(questTooltipSO.Tooltip);
             }
         }
-        protected abstract void SetQuestStepState(string state);
+
+        #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (stepId == string.Empty || stepId == null) GenerateId();
+        }
+
+        public void GenerateId()
+        {
+            stepId = $"{System.Guid.NewGuid()}";
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+        #endif
+
         public bool isDebug { get; set; }
+
+        public QuestStepStatus GetStatus()
+        {
+            return stepStatus;
+        }
+
+        public bool ValidateRequirements()
+        {
+            foreach(QuestRequirementSO requirement in questRequirementSOList)
+            {
+                if (!requirement.ValidateFulfilled())
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    public enum QuestStepStatus
+    {
+        Inactive,
+        InProgress,
+        Finished
     }
 }

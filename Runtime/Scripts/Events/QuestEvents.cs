@@ -18,17 +18,6 @@ namespace jeanf.questsystem
             }
         }
 
-        public event Action<string> onAdvanceQuest;
-
-        public void AdvanceQuest(string id)
-        {
-            if (onAdvanceQuest != null)
-            {
-                Debug.Log($"advancing quest: {id}");
-                onAdvanceQuest(id);
-            }
-        }
-
         public event Action<string> onFinishQuest;
 
         public void FinishQuest(string id)

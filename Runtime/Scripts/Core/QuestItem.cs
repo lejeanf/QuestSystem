@@ -20,7 +20,7 @@ namespace jeanf.questsystem
         [SerializeField] private bool _startQuestOnEnable = false;
 
         [Tooltip("Visual feedback for the quest state")] [Header("Quest")] [SerializeField]
-        private QuestInfoSO questInfoForPoint;
+        private QuestSO questSO;
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
         private float progress = 0.0f;
@@ -43,7 +43,7 @@ namespace jeanf.questsystem
 
         private void Awake()
         {
-            questId = questInfoForPoint.id;
+            questId = questSO.id;
         }
 
         #if UNITY_EDITOR

@@ -5,9 +5,9 @@
 
  namespace jeanf.questsystem
  {
-     [CreateAssetMenu(fileName = "QuestInfoSO", menuName = "Quests/QuestInfoSO", order = 1)]
+     [CreateAssetMenu(fileName = "QuestSO", menuName = "Quests/QuestSO", order = 1)]
      [ScriptableObjectDrawer]
-     public class QuestInfoSO : ScriptableObject
+     public class QuestSO : ScriptableObject
      {
          [field: Space(10)] [field: ReadOnly] [SerializeField] public string id = string.Empty;
 
@@ -21,7 +21,7 @@
          [SerializeField] public string messageToSendOnFinish = "";
 
          [Header("Requirements")] public int levelRequirement;
-         public QuestInfoSO[] questPrerequisites;
+         public QuestSO[] questPrerequisites;
 
          [Header("Steps")] public GameObject[] questStepPrefabs;
 

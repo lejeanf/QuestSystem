@@ -47,7 +47,6 @@ namespace jeanf.questsystem
         private void OnEnable()
         {
             GameEventsManager.instance.questEvents.onStartQuest += StartQuest;
-            GameEventsManager.instance.questEvents.onAdvanceQuest += AdvanceQuest;
             GameEventsManager.instance.questEvents.onFinishQuest += FinishQuest;
 
             GameEventsManager.instance.questEvents.onQuestStepStateChange += QuestStepStateChange;
@@ -60,7 +59,6 @@ namespace jeanf.questsystem
         private void OnDisable()
         {
             GameEventsManager.instance.questEvents.onStartQuest -= StartQuest;
-            GameEventsManager.instance.questEvents.onAdvanceQuest -= AdvanceQuest;
             GameEventsManager.instance.questEvents.onFinishQuest -= FinishQuest;
 
             GameEventsManager.instance.questEvents.onQuestStepStateChange -= QuestStepStateChange;
@@ -107,7 +105,7 @@ namespace jeanf.questsystem
             var meetsRequirements = !(currentPlayerLevel < quest.info.levelRequirement);
 
             // check quest prerequisites for completion
-            foreach (QuestInfoSO prerequisiteQuestInfo in quest.info.questPrerequisites)
+            foreach (QuestSO prerequisiteQuestInfo in quest.info.questPrerequisites)
             {
                 if (GetQuestById(prerequisiteQuestInfo.id).state != QuestState.FINISHED)
                 {
@@ -144,34 +142,6 @@ namespace jeanf.questsystem
             if(isDebug) Debug.Log($"quest id:{id}  started, a message was attatched to the initialization: {quest.messageToSendOnInit}");
         }
 
-        private void AdvanceQuest(string id)
-        {
-            Quest quest = GetQuestById(id);
-
-            // move on to the next step
-            quest.MoveToNextStep();
-            if (isDebug)
-                Debug.Log(
-                    $"[{quest.info.id}]quest state: {quest.state} - {quest.currentStep} over {quest.info.questStepPrefabs.Length} steps done",
-                    this);
-            questStatusUpdateChannel.RaiseEvent(quest.info.id);
-
-
-            
-            // if there are more steps, instantiate the next one
-            if (quest.CurrentStepExists())
-            {
-                UpdateProgress(quest);
-                quest.InstantiateCurrentQuestStep(this.transform);
-            }
-            // if there are no more steps, then we've finished all of them for this quest
-            else
-            {
-                ChangeQuestState(quest.info.id, QuestState.CAN_FINISH);
-            }
-
-            SaveQuest(quest);
-        }
 
         private void UpdateProgress(Quest quest)
         {
@@ -208,10 +178,10 @@ namespace jeanf.questsystem
         private Dictionary<string, Quest> CreateQuestMap()
         {
             // loads all QuestInfoSO Scriptable Objects under the Assets/Resources/Quests folder
-            QuestInfoSO[] allQuests = Resources.LoadAll<QuestInfoSO>("Quests");
+            QuestSO[] allQuests = Resources.LoadAll<QuestSO>("Quests");
             // Create the quest map
             Dictionary<string, Quest> questMap = new Dictionary<string, Quest>();
-            foreach (QuestInfoSO questInfo in allQuests)
+            foreach (QuestSO questInfo in allQuests)
             {
                 var id = questInfo.id;
                 if (questMap.ContainsKey(id))
@@ -266,7 +236,7 @@ namespace jeanf.questsystem
             }
         }
 
-        private Quest LoadQuest(QuestInfoSO questInfo)
+        private Quest LoadQuest(QuestSO questInfo)
         {
             Quest quest = null;
             try

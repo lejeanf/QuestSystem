@@ -9,7 +9,7 @@ namespace jeanf.questsystem
     public class Quest
     {
         // static info
-        public QuestInfoSO info;
+        public QuestSO info;
 
         // state info
         public QuestState state;
@@ -21,7 +21,7 @@ namespace jeanf.questsystem
         public string messageToSendOnInit = "";
         public bool sendMessageOnFinish = false;
         public string messageToSendOnFinish = "";
-        public Quest(QuestInfoSO questInfo)
+        public Quest(QuestSO questInfo)
         {
             this.info = questInfo;
             this.state = QuestState.REQUIREMENTS_NOT_MET;
@@ -40,7 +40,7 @@ namespace jeanf.questsystem
             }
         }
 
-        public Quest(QuestInfoSO questInfo, QuestState questState, int currentQuestStepIndex,
+        public Quest(QuestSO questInfo, QuestState questState, int currentQuestStepIndex,
             QuestStepState[] questStepStates)
         {
             this.info = questInfo;
@@ -48,7 +48,7 @@ namespace jeanf.questsystem
             this.currentQuestStepIndex = currentQuestStepIndex;
             currentStep = this.currentQuestStepIndex;
             this.questStepStates = questStepStates;
-
+            Debug.Log($"questStepState is {this.questStepStates}");
             // if the quest step states and prefabs are different lengths,
             // something has changed during development and the saved data is out of sync.
             if (this.questStepStates.Length != this.info.questStepPrefabs.Length)
@@ -79,8 +79,8 @@ namespace jeanf.questsystem
             {
                 QuestStep questStep = Object.Instantiate<GameObject>(questStepPrefab, parentTransform)
                     .GetComponent<QuestStep>();
-                questStep.InitializeQuestStep(info.id, currentQuestStepIndex,
-                    questStepStates[currentQuestStepIndex].state);
+                questStep.InitializeQuestStep();
+                Debug.LogWarning($"InitializeQuestStep is Empty");
             }
         }
 
