@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace jeanf.questsystem
 {
+    // this is the information needed to save the quest
     [System.Serializable]
     public class QuestData
     {

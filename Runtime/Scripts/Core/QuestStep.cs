@@ -33,7 +33,6 @@ namespace jeanf.questsystem
         [SerializeField] private QuestTooltipSO questTooltipSO;
 
         [Header("Game Objects to Trigger")]
-        [SerializeField] QuestStep[] gameObjectsToTriggerOnStart;
         [SerializeField] QuestStep[] gameObjectsToTriggerOnEnd;
         [SerializeField] QuestRequirementSO[] questRequirementSOList;
 
@@ -45,17 +44,6 @@ namespace jeanf.questsystem
             if (sendQuestStepTooltip != null)
             {
                 DisplayActiveQuestStep();
-            }
-            if (gameObjectsToTriggerOnStart != null)
-            {
-                foreach (QuestStep questStep in gameObjectsToTriggerOnStart)
-                {
-                    if (questStep.ValidateRequirements())
-                    {
-                        Instantiate(questStep, questStep.transform.position, Quaternion.identity);
-                        questStep.InitializeQuestStep(this.questId);
-                    }
-                }
             }
             if (isUsingIntroTimeline && timeline)
             {

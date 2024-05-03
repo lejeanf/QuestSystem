@@ -102,10 +102,10 @@ namespace jeanf.questsystem
         private bool CheckRequirementsMet(Quest quest)
         {
             // check player level requirements
-            var meetsRequirements = !(currentPlayerLevel < quest.info.levelRequirement);
+            var meetsRequirements = !(currentPlayerLevel < quest.questSO.levelRequirement);
 
             // check quest prerequisites for completion
-            foreach (QuestSO prerequisiteQuestInfo in quest.info.questPrerequisites)
+            foreach (QuestSO prerequisiteQuestInfo in quest.questSO.questPrerequisites)
             {
                 if (GetQuestById(prerequisiteQuestInfo.id).state != QuestState.FINISHED)
                 {
@@ -113,7 +113,7 @@ namespace jeanf.questsystem
                 }
             }
             
-            if(isDebug) Debug.Log($"checking requirements for quest: {quest.info.name}, [{quest.info.id}], meetsRequirements: {meetsRequirements}");
+            if(isDebug) Debug.Log($"checking requirements for quest: {quest.questSO.name}, [{quest.questSO.id}], meetsRequirements: {meetsRequirements}");
 
             return meetsRequirements;
         }
@@ -126,7 +126,7 @@ namespace jeanf.questsystem
                 // if we're now meeting the requirements, switch over to the CAN_START state
                 if (quest.state == QuestState.REQUIREMENTS_NOT_MET && CheckRequirementsMet(quest))
                 {
-                    ChangeQuestState(quest.info.id, QuestState.CAN_START);
+                    ChangeQuestState(quest.questSO.id, QuestState.CAN_START);
                 }
             }
         }
@@ -135,7 +135,7 @@ namespace jeanf.questsystem
         {
             Quest quest = GetQuestById(id);
             quest.InstantiateCurrentQuestStep(this.transform);
-            ChangeQuestState(quest.info.id, QuestState.IN_PROGRESS);
+            ChangeQuestState(quest.questSO.id, QuestState.IN_PROGRESS);
             SaveQuest(quest);
             if (!quest.sendMessageOnInitialization) return;
             quest.messageChannel.RaiseEvent(quest.messageToSendOnInit);
@@ -145,10 +145,11 @@ namespace jeanf.questsystem
 
         private void UpdateProgress(Quest quest)
         {
-            var progress = (float)quest.currentStep / quest.info.questStepPrefabs.Length;
-            if (quest.info.id == null) Debug.Log("C'est null");;
-            if (isDebug) Debug.Log($"[{quest.info.id}] progress: {progress * 100}%", this);
-            questProgress.RaiseEvent(quest.info.id, progress);
+            //var progress = (float)quest.currentStep / quest.questSO.questStepPrefabs.Length;
+            var progress = 0;
+            if (quest.questSO.id == null) Debug.Log("C'est null");;
+            if (isDebug) Debug.Log($"[{quest.questSO.id}] progress: {progress * 100}%", this);
+            questProgress.RaiseEvent(quest.questSO.id, progress);
         }
 
         private void FinishQuest(string id)
@@ -157,16 +158,16 @@ namespace jeanf.questsystem
             UpdateProgress(quest);
             ClaimRewards(quest);
             quest.Unsubscribe();
-            ChangeQuestState(quest.info.id, QuestState.FINISHED);
-            questStatusUpdateChannel.RaiseEvent(quest.info.id);
-            questProgress.RaiseEvent(quest.info.id, 1);
+            ChangeQuestState(quest.questSO.id, QuestState.FINISHED);
+            questStatusUpdateChannel.RaiseEvent(quest.questSO.id);
+            questProgress.RaiseEvent(quest.questSO.id, 1);
             SaveQuest(quest);
             if (!quest.sendMessageOnFinish) return;
         }
 
         private void ClaimRewards(Quest quest)
         {
-            GameEventsManager.instance.scenarioEvents.ScenarioUnlocked(quest.info.unlockedScenario);
+            GameEventsManager.instance.scenarioEvents.ScenarioUnlocked(quest.questSO.unlockedScenario);
         }
 
         private void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
@@ -222,18 +223,19 @@ namespace jeanf.questsystem
         {
             try
             {
-                QuestData questData = quest.GetQuestData();
+                QuestData questData = null;
+                //quest.GetQuestData();
                 // serialize using JsonUtility, but use whatever you want here (like JSON.NET)
                 string serializedData = JsonUtility.ToJson(questData);
                 Debug.Log($"saved data {serializedData}");
                 // saving to PlayerPrefs is just a quick example for this tutorial video,
                 // you probably don't want to save this info there long-term.
                 // instead, use an actual Save & Load system and write to a file, the cloud, etc..
-                PlayerPrefs.SetString(quest.info.id, serializedData);
+                PlayerPrefs.SetString(quest.questSO.id, serializedData);
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Failed to save quest with id " + quest.info.id + ": " + e);
+                Debug.LogError("Failed to save quest with id " + quest.questSO.id + ": " + e);
             }
         }
 
@@ -257,7 +259,7 @@ namespace jeanf.questsystem
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Failed to load quest with id " + quest.info.id + ": " + e);
+                Debug.LogError("Failed to load quest with id " + quest.questSO.id + ": " + e);
             }
 
             return quest;

@@ -216,7 +216,7 @@ namespace jeanf.questsystem
         private void QuestStateChange(Quest quest)
         {
             // only update the quest state if this point has the corresponding quest
-            if (quest.info.id.Equals(questId))
+            if (quest.questSO.id.Equals(questId))
             {
                 currentQuestState = quest.state;
                 UpdateState();

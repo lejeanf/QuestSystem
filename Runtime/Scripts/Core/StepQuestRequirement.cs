@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using jeanf.propertyDrawer;
 
@@ -23,15 +21,14 @@ namespace jeanf.questsystem
             
             if (quest == null)
             {
-                return false;
                 Debug.Log("Did not find any quest with this ID");
-
+                return false;
             }
 
             if (quest.GetQuestStepStatusById(requiredStep.StepId) == requiredStatus)
             {
-                return true;
                 Debug.Log("return true because status is the right one");
+                return true;
             }
             else
             {

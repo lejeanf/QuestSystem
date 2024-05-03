@@ -35,7 +35,7 @@ namespace jeanf.questsystem
         {
             if (onQuestStateChange != null)
             {
-                Debug.Log($"quest state change: {quest.info.id} -- state: {quest.state}");
+                Debug.Log($"quest state change: {quest.questSO.id} -- state: {quest.state}");
                 onQuestStateChange(quest);
             }
         }
