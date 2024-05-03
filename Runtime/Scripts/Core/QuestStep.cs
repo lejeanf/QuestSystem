@@ -3,14 +3,16 @@ using jeanf.propertyDrawer ;
 using jeanf.tooltip;
 using UnityEngine;
 using UnityEngine.Playables;
-
+using System;
 namespace jeanf.questsystem
 {
     public abstract class QuestStep : MonoBehaviour, IDebugBehaviour
     {
-        private bool isFinished = false;
-        private bool isActive = false;
-        private string stepId;
+
+        [field: Space(10)][field: ReadOnly][SerializeField]  string stepId;
+        string questId;
+        public string StepId { get { return stepId; } }
+        public string QuestId { get { return questId; } }
         private float questStepProgress = 0;
         [SerializeField] QuestStepStatus stepStatus;
 
@@ -25,6 +27,7 @@ namespace jeanf.questsystem
 
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
+        public static event Action<QuestStep> questStepSender;
 
         [Header("Quest Tooltip")]
         [SerializeField] private QuestTooltipSO questTooltipSO;
@@ -34,9 +37,11 @@ namespace jeanf.questsystem
         [SerializeField] QuestStep[] gameObjectsToTriggerOnEnd;
         [SerializeField] QuestRequirementSO[] questRequirementSOList;
 
-        public void InitializeQuestStep()
+        public void InitializeQuestStep(string questId)
         {
             stepStatus = QuestStepStatus.InProgress;
+            questStepSender.Invoke(this);
+            this.questId = questId;
             if (sendQuestStepTooltip != null)
             {
                 DisplayActiveQuestStep();
@@ -48,7 +53,7 @@ namespace jeanf.questsystem
                     if (questStep.ValidateRequirements())
                     {
                         Instantiate(questStep, questStep.transform.position, Quaternion.identity);
-                        questStep.InitializeQuestStep();
+                        questStep.InitializeQuestStep(this.questId);
                     }
                 }
             }
@@ -64,7 +69,7 @@ namespace jeanf.questsystem
         protected void FinishQuestStep()
         {
             stepStatus = QuestStepStatus.Finished;
-
+            questStepSender.Invoke(this);
             if (sendQuestStepTooltip != null)
             {
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
@@ -78,7 +83,7 @@ namespace jeanf.questsystem
                     if (questStep.ValidateRequirements())
                     {
                         Instantiate(questStep, questStep.transform.position, Quaternion.identity);
-                        questStep.InitializeQuestStep();
+                        questStep.InitializeQuestStep(this.questId);
                     }
                     Debug.Log(questStep.ValidateRequirements());
                 }

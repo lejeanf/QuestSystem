@@ -156,6 +156,7 @@ namespace jeanf.questsystem
             Quest quest = GetQuestById(id);
             UpdateProgress(quest);
             ClaimRewards(quest);
+            quest.Unsubscribe();
             ChangeQuestState(quest.info.id, QuestState.FINISHED);
             questStatusUpdateChannel.RaiseEvent(quest.info.id);
             questProgress.RaiseEvent(quest.info.id, 1);
@@ -198,7 +199,7 @@ namespace jeanf.questsystem
             return questMap;
         }
 
-        private Quest GetQuestById(string id)
+        public Quest GetQuestById(string id)
         {
             Quest quest = questMap[id];
             if (quest == null)

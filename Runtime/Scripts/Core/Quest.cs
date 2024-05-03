@@ -21,6 +21,8 @@ namespace jeanf.questsystem
         public string messageToSendOnInit = "";
         public bool sendMessageOnFinish = false;
         public string messageToSendOnFinish = "";
+        Dictionary<string, QuestStepStatus> stepList = new Dictionary<string, QuestStepStatus>();
+        
         public Quest(QuestSO questInfo)
         {
             this.info = questInfo;
@@ -38,6 +40,7 @@ namespace jeanf.questsystem
             {
                 questStepStates[i] = new QuestStepState();
             }
+            QuestStep.questStepSender += questStep => AddToQuestStepMap(questStep);
         }
 
         public Quest(QuestSO questInfo, QuestState questState, int currentQuestStepIndex,
@@ -48,7 +51,7 @@ namespace jeanf.questsystem
             this.currentQuestStepIndex = currentQuestStepIndex;
             currentStep = this.currentQuestStepIndex;
             this.questStepStates = questStepStates;
-            Debug.Log($"questStepState is {this.questStepStates}");
+
             // if the quest step states and prefabs are different lengths,
             // something has changed during development and the saved data is out of sync.
             if (this.questStepStates.Length != this.info.questStepPrefabs.Length)
@@ -58,6 +61,7 @@ namespace jeanf.questsystem
                                  + "with the QuestInfo and the saved data is now out of sync. "
                                  + "Reset your data - as this might cause issues. QuestId: " + this.info.id);
             }
+            QuestStep.questStepSender += questStep => AddToQuestStepMap(questStep);
         }
 
 
@@ -79,7 +83,7 @@ namespace jeanf.questsystem
             {
                 QuestStep questStep = Object.Instantiate<GameObject>(questStepPrefab, parentTransform)
                     .GetComponent<QuestStep>();
-                questStep.InitializeQuestStep();
+                questStep.InitializeQuestStep(info.id);
                 Debug.LogWarning($"InitializeQuestStep is Empty");
             }
         }
@@ -117,6 +121,37 @@ namespace jeanf.questsystem
         public QuestData GetQuestData()
         {
             return new QuestData(state, currentQuestStepIndex, questStepStates);
+        }
+
+        private void AddToQuestStepMap(QuestStep questStep)
+        {
+            if (questStep.QuestId != info.id)
+            {
+                return;
+            }
+
+
+            if (stepList.ContainsKey(questStep.StepId))
+            {
+                Debug.Log(questStep.GetStatus());
+                stepList[questStep.StepId] = questStep.GetStatus();
+            }
+            else
+            {
+                stepList.Add(questStep.StepId, questStep.GetStatus());
+            }
+        }
+
+        public QuestStepStatus GetQuestStepStatusById(string id)
+        {
+            QuestStepStatus status = stepList[id];
+            return status;
+        }
+
+        public void Unsubscribe()
+        {
+            QuestStep.questStepSender -= questStep => AddToQuestStepMap(questStep);
+
         }
     }
 }

@@ -9,16 +9,40 @@ namespace jeanf.questsystem
     [ScriptableObjectDrawer]
     public class StepQuestRequirement : QuestRequirementSO
     {
-        [SerializeField] QuestStep questStep;
+        QuestManager questManager;
+        [SerializeField] QuestStep requiredStep;
         [SerializeField] QuestStepStatus requiredStatus;
         public override bool ValidateFulfilled()
         {
-            if (requiredStatus == questStep.GetStatus())
+            questManager = FindObjectOfType<QuestManager>();
+            if (questManager == null)
+            {
+                Debug.Log("questManager is null");
+            }
+            Quest quest = questManager.GetQuestById(requiredStep.QuestId);
+            
+            if (quest == null)
+            {
+                return false;
+                Debug.Log("Did not find any quest with this ID");
+
+            }
+
+            if (quest.GetQuestStepStatusById(requiredStep.StepId) == requiredStatus)
             {
                 return true;
+                Debug.Log("return true because status is the right one");
             }
-            return false;
-            
+            else
+            {
+                Debug.Log($"required status = {requiredStatus} && stepStatusInDictionnary = {quest.GetQuestStepStatusById(requiredStep.StepId)}");
+            }
+            //Get le QuestId du requiredStep
+            //Check dans le QuestManager pour get la quest dont l'id correspond -> comment on get le QuestManager ici though ?
+            //Check dans la quête si y'a un questStep avec l'id du requiredStep dans la map
+            //Check, si on a trouvé un questStep avec le bon id, si son status est le bon
+            //Return true or false selon le résultat
+            return false;            
         }
     }
 }
