@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using GraphProcessor;
 using jeanf.EventSystem;
 using jeanf.propertyDrawer;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace jeanf.questsystem
 {
@@ -19,7 +22,9 @@ namespace jeanf.questsystem
         public string messageToSendOnInit = "";
         public bool sendMessageOnFinish = false;
         public string messageToSendOnFinish = "";
-        Dictionary<string, QuestStepStatus> stepList = new Dictionary<string, QuestStepStatus>();
+        private Dictionary<string, QuestStep> stepDictionary;
+
+        
         
         public Quest(QuestSO questQuestSo)
         {
@@ -59,49 +64,11 @@ namespace jeanf.questsystem
             QuestStep.questStepSender += questStep => AddToQuestStepMap(questStep);
         }
 
-
-        /*public void MoveToNextStep()
+        public void SaveQuestTreeState(BaseGraph tree, Dictionary<string, QuestStep> stepDictionary)
         {
-            currentQuestStepIndex++;
-            currentStep = currentQuestStepIndex;
-        }*/
-
-        public bool CurrentStepExists()
-        {
-            return false;
+            
         }
-
-        public void InstantiateCurrentQuestStep(Transform parentTransform)
-        {
-            /*GameObject questStepPrefab = GetCurrentQuestStepPrefab();
-            if (questStepPrefab != null)
-            {
-                QuestStep questStep = Object.Instantiate<GameObject>(questStepPrefab, parentTransform)
-                    .GetComponent<QuestStep>();
-                questStep.InitializeQuestStep(questSO.id);
-                Debug.LogWarning($"InitializeQuestStep is Empty");
-            }*/
-        }
-
-        /*
-        private GameObject GetCurrentQuestStepPrefab()
-        {
-            GameObject questStepPrefab = null;
-            if (CurrentStepExists())
-            {
-                questStepPrefab = questSO.questStepPrefabs[currentQuestStepIndex];
-            }
-            else
-            {
-                Debug.LogWarning("Tried to get quest step prefab, but stepIndex was out of range indicating that "
-                                 + "there's no current step: QuestId=" + questSO.id + ", stepIndex=" +
-                                 currentQuestStepIndex);
-            }
-
-            return questStepPrefab;
-        }
-        */
-
+        
         public void StoreQuestStepState(QuestStepState questStepState, int stepIndex)
         {
             if (stepIndex < questStepStates.Length)
@@ -115,10 +82,16 @@ namespace jeanf.questsystem
             }
         }
 
+        public void InstantiateCurrentQuestStep(QuestStep step, Transform parent)
+        {
+            Object.Instantiate(step.PrefabToInstantiate, parent);
+        }
+
         /*public QuestData GetQuestData()
         {
             return new QuestData(state, currentQuestStepIndex, questStepStates);
         }*/
+
 
         private void AddToQuestStepMap(QuestStep questStep)
         {
@@ -128,27 +101,26 @@ namespace jeanf.questsystem
             }
 
 
-            if (stepList.ContainsKey(questStep.StepId))
+            if (stepDictionary.ContainsKey(questStep.StepId))
             {
                 Debug.Log(questStep.GetStatus());
-                stepList[questStep.StepId] = questStep.GetStatus();
+                stepDictionary[questStep.StepId].stepStatus = questStep.GetStatus();
             }
             else
             {
-                stepList.Add(questStep.StepId, questStep.GetStatus());
+                stepDictionary.Add(questStep.StepId, questStep);
             }
         }
 
         public QuestStepStatus GetQuestStepStatusById(string id)
         {
-            QuestStepStatus status = stepList[id];
+            QuestStepStatus status = stepDictionary[id].stepStatus;
             return status;
         }
 
         public void Unsubscribe()
         {
             QuestStep.questStepSender -= questStep => AddToQuestStepMap(questStep);
-
         }
     }
 }

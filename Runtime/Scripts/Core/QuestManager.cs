@@ -68,14 +68,13 @@ namespace jeanf.questsystem
 
         private void Start()
         {
-
             foreach (Quest quest in questMap.Values)
             {
                 // initialize any loaded quest steps
-                if (quest.state == QuestState.IN_PROGRESS)
-                {
-                    quest.InstantiateCurrentQuestStep(this.transform);
-                }
+                
+                // find nodes from questtree and start those needed.
+                // either it is the starting node or the ones previously
+                // InProgress from the savedState
 
                 // broadcast the initial state of all quests on startup
                 GameEventsManager.instance.questEvents.QuestStateChange(quest);
@@ -134,7 +133,7 @@ namespace jeanf.questsystem
         private void StartQuest(string id)
         {
             Quest quest = GetQuestById(id);
-            quest.InstantiateCurrentQuestStep(this.transform);
+            quest.InstantiateCurrentQuestStep(quest.questSO.startingStep, this.transform);
             ChangeQuestState(quest.questSO.id, QuestState.IN_PROGRESS);
             SaveQuest(quest);
             if (!quest.sendMessageOnInitialization) return;

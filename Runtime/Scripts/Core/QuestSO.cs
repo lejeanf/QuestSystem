@@ -1,4 +1,5 @@
 using System;
+using GraphProcessor;
 using jeanf.EventSystem;
 using UnityEngine;
 using jeanf.propertyDrawer;
@@ -12,7 +13,9 @@ namespace jeanf.questsystem
         [field: Space(10)] [field: ReadOnly] [SerializeField] public string id = string.Empty;
 
         [Header("General")] public string displayName;
-         
+        [SerializeField] public BaseGraph QuestTree;
+        [SerializeField] public QuestStep startingStep;
+        
         [Header("Custom messages init/finish")] 
         [SerializeField] public StringEventChannelSO messageChannel;
         [SerializeField] public bool sendMessageOnInitialization = false;
@@ -31,7 +34,6 @@ namespace jeanf.questsystem
         private void OnValidate()
         {
             if (id == string.Empty || id == null) GenerateId();
-
         }
 
         public void GenerateId()
