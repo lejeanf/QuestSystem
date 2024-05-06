@@ -25,20 +25,16 @@ namespace jeanf.questsystem
                 return false;
             }
 
-            if (quest.GetQuestStepStatusById(requiredStep.StepId) == requiredStatus)
-            {
-                Debug.Log("return true because status is the right one");
-                return true;
-            }
-            else
-            {
-                Debug.Log($"required status = {requiredStatus} && stepStatusInDictionnary = {quest.GetQuestStepStatusById(requiredStep.StepId)}");
-            }
-            //Get le QuestId du requiredStep
-            //Check dans le QuestManager pour get la quest dont l'id correspond -> comment on get le QuestManager ici though ?
-            //Check dans la quête si y'a un questStep avec l'id du requiredStep dans la map
-            //Check, si on a trouvé un questStep avec le bon id, si son status est le bon
-            //Return true or false selon le résultat
+            //if (quest.GetQuestStepStatusById(requiredStep.StepId) == requiredStatus)
+            //{
+            //    Debug.Log("return true because status is the right one");
+            //    return true;
+            //}
+            //else
+            //{
+            //    Debug.Log($"required status = {requiredStatus} && stepStatusInDictionnary = {quest.GetQuestStepStatusById(requiredStep.StepId)}");
+            //}
+
             return false;            
         }
     }

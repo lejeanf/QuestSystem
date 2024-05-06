@@ -167,10 +167,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _isDebug: 1
   _startQuestOnEnable: 0
-  questInfoForPoint: {fileID: 11400000, guid: a249a914e47bba041b17cb82c0fd3105, type: 2}
+  questSO: {fileID: 11400000, guid: a249a914e47bba041b17cb82c0fd3105, type: 2}
   progress: 0
   clearToStart: 0
   QuestProgress: {fileID: 11400000, guid: d6b05e1957994c8449fb72e849a2a3d6, type: 2}
   StartQuestEventChannel: {fileID: 11400000, guid: c510c1e4d26428740b3e329cca98e5d1,
     type: 2}
+  QuestInitialCheck: {fileID: 11400000, guid: 4f5235d1ff779064cabee9ca65296d7f, type: 2}
   requirementCheck: {fileID: 11400000, guid: a4dae407f780f974abbf43c280515876, type: 2}

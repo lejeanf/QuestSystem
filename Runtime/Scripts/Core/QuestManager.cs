@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using GraphProcessor;
 using jeanf.EventSystem;
 using jeanf.validationTools;
 using UnityEngine;
@@ -30,6 +31,8 @@ namespace jeanf.questsystem
         [Header("Listening on:")] [SerializeField] [Validation("A reference to the questStatusUpdateRequested is required.")] private StringEventChannelSO questStatusUpdateRequested;
 
         private Dictionary<string, Quest> questMap;
+        private Dictionary<string, QuestStep> stepMap;
+        private Dictionary<BaseGraph, ProcessGraphProcessor> graphProcessors = new Dictionary<BaseGraph, ProcessGraphProcessor>();
 
         // quest start requirements
         private int currentPlayerLevel;
@@ -54,9 +57,16 @@ namespace jeanf.questsystem
             GameEventsManager.instance.playerEvents.onPlayerLevelChange += PlayerLevelChange;
 
             questStatusUpdateRequested.OnEventRaised += ctx => CheckRequirementsMet(questMap[ctx]);
+
+            QuestItem.questTreeSender += StartQuestTree;
+
         }
 
-        private void OnDisable()
+
+        private void OnDisable() => Unsubscribe();
+        private void OnDestroy() => Unsubscribe();
+
+        private void Unsubscribe()
         {
             GameEventsManager.instance.questEvents.onStartQuest -= StartQuest;
             GameEventsManager.instance.questEvents.onFinishQuest -= FinishQuest;
@@ -64,6 +74,8 @@ namespace jeanf.questsystem
             GameEventsManager.instance.questEvents.onQuestStepStateChange -= QuestStepStateChange;
 
             GameEventsManager.instance.playerEvents.onPlayerLevelChange -= PlayerLevelChange;
+
+            QuestItem.questTreeSender -= StartQuestTree;
         }
 
         private void Start()
@@ -81,6 +93,15 @@ namespace jeanf.questsystem
             }
         }
 
+        private void StartQuestTree(BaseGraph questTree)
+        {
+            if (!graphProcessors.ContainsKey(questTree))
+            {
+                ProcessGraphProcessor graphProcessor = new ProcessGraphProcessor(questTree);
+                graphProcessors.Add(questTree, graphProcessor);
+                graphProcessor.Run();
+            }
+        }
         private void CheckIfQuestIsAlreadyLoaded(string id)
         {
             QuestInitialCheck.RaiseEvent(id);
@@ -133,14 +154,13 @@ namespace jeanf.questsystem
         private void StartQuest(string id)
         {
             Quest quest = GetQuestById(id);
-            quest.InstantiateCurrentQuestStep(quest.questSO.startingStep, this.transform);
+            //quest.InstantiateCurrentQuestStep(quest.questSO.startingStep, this.transform);
             ChangeQuestState(quest.questSO.id, QuestState.IN_PROGRESS);
             SaveQuest(quest);
             if (!quest.sendMessageOnInitialization) return;
             quest.messageChannel.RaiseEvent(quest.messageToSendOnInit);
             if(isDebug) Debug.Log($"quest id:{id}  started, a message was attatched to the initialization: {quest.messageToSendOnInit}");
         }
-
 
         private void UpdateProgress(Quest quest)
         {
@@ -156,7 +176,6 @@ namespace jeanf.questsystem
             Quest quest = GetQuestById(id);
             UpdateProgress(quest);
             ClaimRewards(quest);
-            quest.Unsubscribe();
             ChangeQuestState(quest.questSO.id, QuestState.FINISHED);
             questStatusUpdateChannel.RaiseEvent(quest.questSO.id);
             questProgress.RaiseEvent(quest.questSO.id, 1);
@@ -263,7 +282,7 @@ namespace jeanf.questsystem
 
             return quest;
         }
-        private void ValididtyCheck()
+        private void ValidityCheck()
         {
             const string searching = "attempting to find";
             const string _ = "Quests/Channels"; // search target
@@ -335,7 +354,7 @@ namespace jeanf.questsystem
         public void OnValidate()
         {
             #if UNITY_EDITOR
-            ValididtyCheck();
+            ValidityCheck();
             #endif
         }
     }

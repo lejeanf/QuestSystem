@@ -22,15 +22,19 @@ namespace jeanf.questsystem
         public string messageToSendOnInit = "";
         public bool sendMessageOnFinish = false;
         public string messageToSendOnFinish = "";
-        private Dictionary<string, QuestStep> stepDictionary;
+        private List<QuestStep> questSteps = new List<QuestStep>();
 
-        
-        
+        public  delegate void QuestStepSender(QuestStep questStep);
+        public static QuestStepSender questStepSender;
+        public delegate void QuestSender(string questId, Quest quest);
+        public static QuestSender questSender;
+
+
         public Quest(QuestSO questQuestSo)
         {
             this.questSO = questQuestSo;
             this.state = QuestState.REQUIREMENTS_NOT_MET;
-            this.questStepStates = new QuestStepState[questSO.questStepPrefabs.Length];
+            this.questStepStates = new QuestStepState[questSO.questSteps.Length];
             this.messageChannel = questQuestSo.messageChannel;
             //init
             this.sendMessageOnInitialization = questQuestSo.sendMessageOnInitialization;
@@ -42,7 +46,11 @@ namespace jeanf.questsystem
             {
                 questStepStates[i] = new QuestStepState();
             }
-            QuestStep.questStepSender += questStep => AddToQuestStepMap(questStep);
+
+            questSender?.Invoke(questQuestSo.id, this);
+            
+            //AddToStepMap(questSteps);
+
         }
 
         public Quest(QuestSO questQuestSo, QuestState questState, int currentQuestStepIndex,
@@ -54,14 +62,18 @@ namespace jeanf.questsystem
 
             // if the quest step states and prefabs are different lengths,
             // something has changed during development and the saved data is out of sync.
-            if (this.questStepStates.Length != this.questSO.questStepPrefabs.Length)
+            if (this.questStepStates.Length != this.questSO.questSteps.Length)
             {
                 Debug.LogWarning("Quest Step Prefabs and Quest Step States are "
                                  + "of different lengths. This indicates something changed "
                                  + "with the QuestInfo and the saved data is now out of sync. "
                                  + "Reset your data - as this might cause issues. QuestId: " + this.questSO.id);
             }
-            QuestStep.questStepSender += questStep => AddToQuestStepMap(questStep);
+
+
+
+            //AddToStepMap(questSteps);
+
         }
 
         public void SaveQuestTreeState(BaseGraph tree, Dictionary<string, QuestStep> stepDictionary)
@@ -87,40 +99,52 @@ namespace jeanf.questsystem
             Object.Instantiate(step.PrefabToInstantiate, parent);
         }
 
+
+
+        
+
         /*public QuestData GetQuestData()
         {
             return new QuestData(state, currentQuestStepIndex, questStepStates);
         }*/
 
 
-        private void AddToQuestStepMap(QuestStep questStep)
-        {
-            if (questStep.QuestId != questSO.id)
-            {
-                return;
-            }
+        //public void InstantiateCurrentQuestStep(Transform parentTransform)
+        //{
+        //    GameObject questStepPrefab = GetCurrentQuestStepPrefab();
+        //    if (questStepPrefab != null)
+        //    {
+        //        QuestStep questStep = Object.Instantiate<GameObject>(questStepPrefab, parentTransform)
+        //            .GetComponent<QuestStep>();
+        //        questStep.InitializeQuestStep(info.id, currentQuestStepIndex,
+        //            questStepStates[currentQuestStepIndex].state);
+        //    }
+        //}
+
+        //private void AddToStepMap(List<QuestStep> questSteps)
+        //{
+        //    questStepSender?.Invoke(questSteps);
+        //    //if (questStep.QuestId != questSO.id)
+        //    //{
+        //    //    return;
+        //    //}
 
 
-            if (stepDictionary.ContainsKey(questStep.StepId))
-            {
-                Debug.Log(questStep.GetStatus());
-                stepDictionary[questStep.StepId].stepStatus = questStep.GetStatus();
-            }
-            else
-            {
-                stepDictionary.Add(questStep.StepId, questStep);
-            }
-        }
+        //    //if (stepDictionary.ContainsKey(questStep.StepId))
+        //    //{
+        //    //    Debug.Log(questStep.GetStatus());
+        //    //    stepDictionary[questStep.StepId].stepStatus = questStep.GetStatus();
+        //    //}
+        //    //else
+        //    //{
+        //    //    stepDictionary.Add(questStep.StepId, questStep);
+        //    //}
+        //}
 
-        public QuestStepStatus GetQuestStepStatusById(string id)
-        {
-            QuestStepStatus status = stepDictionary[id].stepStatus;
-            return status;
-        }
-
-        public void Unsubscribe()
-        {
-            QuestStep.questStepSender -= questStep => AddToQuestStepMap(questStep);
-        }
+        //public QuestStepStatus GetQuestStepStatusById(string id)
+        //{
+        //    //QuestStepStatus status = stepDictionary[id].stepStatus;
+        //    //return status;
+        //}
     }
 }

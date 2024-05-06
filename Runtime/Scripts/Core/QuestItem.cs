@@ -4,6 +4,7 @@ using jeanf.EventSystem;
 using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
+using GraphProcessor;
 
 namespace jeanf.questsystem
 {
@@ -21,6 +22,10 @@ namespace jeanf.questsystem
 
         [Tooltip("Visual feedback for the quest state")] [Header("Quest")] [SerializeField]
         private QuestSO questSO;
+        private Dictionary<string, QuestStep> stepMap = new Dictionary<string, QuestStep>();
+        private List<QuestStep> activeSteps = new List<QuestStep>();
+        public delegate void QuestTreeSender(BaseGraph questTree);
+        public static QuestTreeSender questTreeSender;
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
         private float progress = 0.0f;
@@ -44,6 +49,40 @@ namespace jeanf.questsystem
         private void Awake()
         {
             questId = questSO.id;
+            for (int i = 0; i < questSO.questSteps.Length; i++)
+            {
+                if (!stepMap.ContainsKey(questSO.questSteps[i].StepId))
+                {
+                    Debug.Log($"id on awake {questSO.questSteps[i].StepId}, added to {this.name}'s dictionary", this);
+                    stepMap.Add(questSO.questSteps[i].StepId, questSO.questSteps[i]);
+                }
+            }
+        }
+
+        
+        public void InstantiateQuestStep(string id)
+        {
+            Debug.Log($"id to instantiate {id}");
+            Debug.Log($"{this.name} has {stepMap.Count} in dictionary ", this);
+            foreach(var step in stepMap.Values)
+            {
+                Debug.Log($"present in dictionary: {step.StepId}");
+            }
+            if (stepMap.ContainsKey(id))
+            {
+                Debug.Log($"item in stepMap {stepMap[id]}");
+                Instantiate(stepMap[id]);
+                activeSteps.Add(stepMap[id]);
+            }
+        }
+
+        public void DestroyQuestStep(string id)
+        {
+            if (stepMap.ContainsKey(id))
+            {
+                Destroy(stepMap[id]);
+                activeSteps.Remove(stepMap[id]);
+            }
         }
 
         #if UNITY_EDITOR
@@ -159,6 +198,7 @@ namespace jeanf.questsystem
             QuestProgress.OnEventRaised += UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
+            QuestStepNode.stepIdSender += InstantiateQuestStep;
         }
 
         private void Unsubscribe()
@@ -168,6 +208,8 @@ namespace jeanf.questsystem
             QuestProgress.OnEventRaised -= UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
+            QuestStepNode.stepIdSender -= InstantiateQuestStep;
+
         }
 
         private void UpdateState()
@@ -238,6 +280,7 @@ namespace jeanf.questsystem
             
             Debug.Log($"Requesting start for quest [{id}]");
             AllClear(true);
+            questTreeSender?.Invoke(questSO.QuestTree);
             if(isDebug) Debug.Log($"Quest start was requested for quest {id}.", this);
         }
 

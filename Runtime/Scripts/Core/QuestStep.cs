@@ -12,9 +12,9 @@ using NodeGraphProcessor.Examples;
 namespace jeanf.questsystem
 {
     [System.Serializable, NodeMenuItem("questSystem/QuestStep")]
-    public class QuestStep : BaseNode, IDebugBehaviour
+    public class QuestStep : MonoBehaviour, IDebugBehaviour
     {
-        public override string        name => "QuestStep";
+
         public GameObject PrefabToInstantiate;
         public string StepId { get { return stepId; } }
         [field: Space(10)][field: ReadOnly][SerializeField]  string stepId;
@@ -37,7 +37,8 @@ namespace jeanf.questsystem
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
         public static event Action<QuestStep> questStepSender;
-
+        public delegate void StepCompleted(string id);
+        public static StepCompleted stepCompleted;
         [Header("Quest Tooltip")]
         [SerializeField] private QuestTooltipSO questTooltipSO;
 
@@ -49,39 +50,38 @@ namespace jeanf.questsystem
         [Output(name = "TriggersNext", allowMultiple = true)]
         public ConditionalLink output;
 
-        protected override void Process() => InitializeQuestStep();
+        private void OnEnable()
+        {
+            InitializeQuestStep();
+        }
+
 
         public void InitializeQuestStep()
         {
-            InitializeQuestStep(QuestId);
-        }
-
-        public void InitializeQuestStep(string questId)
-        {
             // failsafe to avoid lauching the same step more than once at a time.
-            if(stepStatus != QuestStepStatus.Active) return;
-            Debug.Log($"Initializing quest with questId: {questId} and nodeId: {GUID}");
-            
+            if (stepStatus != QuestStepStatus.Active) return;
+            Debug.Log($"Initializing quest with questId: {questId}");
+
             stepStatus = QuestStepStatus.Active;
             questStepSender.Invoke(this);
-            this.questId = questId;
+
             if (sendQuestStepTooltip != null)
             {
                 DisplayActiveQuestStep();
             }
             if (isUsingIntroTimeline && timeline)
             {
-                if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
+                if (isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
                 _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
             }
-            
-
         }
+
+
 
         protected void FinishQuestStep()
         {
             stepStatus = QuestStepStatus.Completed;
-            questStepSender.Invoke(this);
+  
             if (sendQuestStepTooltip != null)
             {
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
@@ -90,12 +90,8 @@ namespace jeanf.questsystem
             Debug.LogWarning("Implement prefab destruction");
             Debug.LogWarning("Implement next trigger calls.");
 
-            foreach (var outputPort in outputPorts)
-            {
-                var ownerGuid = outputPort.owner.GUID;
-                Debug.Log($"output port ownerGuid: {ownerGuid}");
-                outputPort.PushData();
-            }
+            stepCompleted?.Invoke(stepId);
+
             /*
             if (gameObjectsToTriggerOnEnd != null)
             {
@@ -136,7 +132,7 @@ namespace jeanf.questsystem
         public void GenerateId()
         {
             stepId = $"{System.Guid.NewGuid()}";
-            //UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this);
         }
         #endif
 
