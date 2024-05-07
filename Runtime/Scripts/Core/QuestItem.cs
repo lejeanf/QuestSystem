@@ -4,7 +4,7 @@ using jeanf.EventSystem;
 using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
-using GraphProcessor;
+
 
 namespace jeanf.questsystem
 {
@@ -24,8 +24,7 @@ namespace jeanf.questsystem
         private QuestSO questSO;
         private Dictionary<string, QuestStep> stepMap = new Dictionary<string, QuestStep>();
         private List<QuestStep> activeSteps = new List<QuestStep>();
-        public delegate void QuestTreeSender(BaseGraph questTree);
-        public static QuestTreeSender questTreeSender;
+
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
         private float progress = 0.0f;
@@ -57,17 +56,20 @@ namespace jeanf.questsystem
                     stepMap.Add(questSO.questSteps[i].StepId, questSO.questSteps[i]);
                 }
             }
+
+            foreach (QuestStep step in stepMap.Values)
+            {
+                if (step.isRootStep)
+                {
+                    InstantiateQuestStep(step.StepId);
+                }
+            }
         }
 
         
         public void InstantiateQuestStep(string id)
         {
-            Debug.Log($"id to instantiate {id}");
-            Debug.Log($"{this.name} has {stepMap.Count} in dictionary ", this);
-            foreach(var step in stepMap.Values)
-            {
-                Debug.Log($"present in dictionary: {step.StepId}");
-            }
+
             if (stepMap.ContainsKey(id))
             {
                 Debug.Log($"item in stepMap {stepMap[id]}");
@@ -198,7 +200,7 @@ namespace jeanf.questsystem
             QuestProgress.OnEventRaised += UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
-            QuestStepNode.stepIdSender += InstantiateQuestStep;
+            QuestStep.sendNextStepId += InstantiateQuestStep;
         }
 
         private void Unsubscribe()
@@ -208,7 +210,7 @@ namespace jeanf.questsystem
             QuestProgress.OnEventRaised -= UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
-            QuestStepNode.stepIdSender -= InstantiateQuestStep;
+            QuestStep.sendNextStepId += InstantiateQuestStep;
 
         }
 
@@ -280,7 +282,6 @@ namespace jeanf.questsystem
             
             Debug.Log($"Requesting start for quest [{id}]");
             AllClear(true);
-            questTreeSender?.Invoke(questSO.QuestTree);
             if(isDebug) Debug.Log($"Quest start was requested for quest {id}.", this);
         }
 

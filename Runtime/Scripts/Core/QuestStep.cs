@@ -16,10 +16,12 @@ namespace jeanf.questsystem
     {
 
         public GameObject PrefabToInstantiate;
+        [field: Space(10)][field: ReadOnly][SerializeField] string stepId;
         public string StepId { get { return stepId; } }
-        [field: Space(10)][field: ReadOnly][SerializeField]  string stepId;
-        public string QuestId { get { return questId; } }
+
         string questId;
+        public string QuestId { get { return questId; } }
+
         
         private float questStepProgress = 0;
         
@@ -33,6 +35,10 @@ namespace jeanf.questsystem
         [DrawIf("isUsingIntroTimeline", true, ComparisonType.Equals, DisablingType.DontDraw)] 
         public PlayableAsset timeline;
 
+        public List<QuestStep> questStepsToTrigger = new List<QuestStep>();
+        public delegate void SendNextStepId(string id);
+        public static SendNextStepId sendNextStepId;
+        public bool isRootStep;
 
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
@@ -44,11 +50,6 @@ namespace jeanf.questsystem
 
         [SerializeField] QuestRequirementSO[] questRequirementSOList;
 
-        [Input(name = "TriggeredBy", allowMultiple = true)]
-        public ConditionalLink input;
-        
-        [Output(name = "TriggersNext", allowMultiple = true)]
-        public ConditionalLink output;
 
         private void OnEnable()
         {
@@ -90,23 +91,14 @@ namespace jeanf.questsystem
             Debug.LogWarning("Implement prefab destruction");
             Debug.LogWarning("Implement next trigger calls.");
 
-            stepCompleted?.Invoke(stepId);
+            
 
-            /*
-            if (gameObjectsToTriggerOnEnd != null)
+            foreach(QuestStep questStep in questStepsToTrigger)
             {
-                foreach (QuestStep questStep in gameObjectsToTriggerOnEnd)
-                {
-                    if (questStep.ValidateRequirements())
-                    {
-                        //Instantiate(questStep, questStep.transform.position, Quaternion.identity);
-                        Debug.LogWarning("Implement next triger instanciation");
-                        questStep.InitializeQuestStep(this.questId);
-                    }
-                    Debug.Log(questStep.ValidateRequirements());
-                }
+                sendNextStepId?.Invoke(questStep.stepId);
             }
-            */
+
+            stepCompleted?.Invoke(stepId);
 
             if (!isUsingIntroTimeline || !timeline) return;
             //if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");
