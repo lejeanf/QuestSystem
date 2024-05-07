@@ -42,7 +42,7 @@ namespace jeanf.questsystem
 
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
-        public static event Action<QuestStep> questStepSender;
+
         public delegate void StepCompleted(string id);
         public static StepCompleted stepCompleted;
         [Header("Quest Tooltip")]
@@ -64,7 +64,7 @@ namespace jeanf.questsystem
             Debug.Log($"Initializing quest with questId: {questId}");
 
             stepStatus = QuestStepStatus.Active;
-            questStepSender.Invoke(this);
+
 
             if (sendQuestStepTooltip != null)
             {
@@ -87,7 +87,7 @@ namespace jeanf.questsystem
             {
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
             }
-            //if(this.gameObject) Destroy(this.gameObject);
+
             Debug.LogWarning("Implement prefab destruction");
             Debug.LogWarning("Implement next trigger calls.");
 

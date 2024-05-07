@@ -31,8 +31,7 @@ namespace jeanf.questsystem
         [Header("Listening on:")] [SerializeField] [Validation("A reference to the questStatusUpdateRequested is required.")] private StringEventChannelSO questStatusUpdateRequested;
 
         private Dictionary<string, Quest> questMap;
-        private Dictionary<string, QuestStep> stepMap;
-        private Dictionary<BaseGraph, ProcessGraphProcessor> graphProcessors = new Dictionary<BaseGraph, ProcessGraphProcessor>();
+
 
         // quest start requirements
         private int currentPlayerLevel;
@@ -58,7 +57,6 @@ namespace jeanf.questsystem
 
             questStatusUpdateRequested.OnEventRaised += ctx => CheckRequirementsMet(questMap[ctx]);
 
-            QuestItem.questTreeSender += StartQuestTree;
 
         }
 
@@ -75,33 +73,18 @@ namespace jeanf.questsystem
 
             GameEventsManager.instance.playerEvents.onPlayerLevelChange -= PlayerLevelChange;
 
-            QuestItem.questTreeSender -= StartQuestTree;
         }
 
         private void Start()
         {
             foreach (Quest quest in questMap.Values)
             {
-                // initialize any loaded quest steps
-                
-                // find nodes from questtree and start those needed.
-                // either it is the starting node or the ones previously
-                // InProgress from the savedState
-
                 // broadcast the initial state of all quests on startup
                 GameEventsManager.instance.questEvents.QuestStateChange(quest);
             }
         }
 
-        private void StartQuestTree(BaseGraph questTree)
-        {
-            if (!graphProcessors.ContainsKey(questTree))
-            {
-                ProcessGraphProcessor graphProcessor = new ProcessGraphProcessor(questTree);
-                graphProcessors.Add(questTree, graphProcessor);
-                graphProcessor.Run();
-            }
-        }
+
         private void CheckIfQuestIsAlreadyLoaded(string id)
         {
             QuestInitialCheck.RaiseEvent(id);
@@ -154,7 +137,6 @@ namespace jeanf.questsystem
         private void StartQuest(string id)
         {
             Quest quest = GetQuestById(id);
-            //quest.InstantiateCurrentQuestStep(quest.questSO.startingStep, this.transform);
             ChangeQuestState(quest.questSO.id, QuestState.IN_PROGRESS);
             SaveQuest(quest);
             if (!quest.sendMessageOnInitialization) return;
@@ -164,7 +146,6 @@ namespace jeanf.questsystem
 
         private void UpdateProgress(Quest quest)
         {
-            //var progress = (float)quest.currentStep / quest.questSO.questStepPrefabs.Length;
             var progress = 0;
             if (quest.questSO.id == null) Debug.Log("C'est null");;
             if (isDebug) Debug.Log($"[{quest.questSO.id}] progress: {progress * 100}%", this);

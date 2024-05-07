@@ -22,13 +22,6 @@ namespace jeanf.questsystem
         public string messageToSendOnInit = "";
         public bool sendMessageOnFinish = false;
         public string messageToSendOnFinish = "";
-        private List<QuestStep> questSteps = new List<QuestStep>();
-
-        public  delegate void QuestStepSender(QuestStep questStep);
-        public static QuestStepSender questStepSender;
-        public delegate void QuestSender(string questId, Quest quest);
-        public static QuestSender questSender;
-
 
         public Quest(QuestSO questQuestSo)
         {
@@ -46,11 +39,6 @@ namespace jeanf.questsystem
             {
                 questStepStates[i] = new QuestStepState();
             }
-
-            questSender?.Invoke(questQuestSo.id, this);
-            
-            //AddToStepMap(questSteps);
-
         }
 
         public Quest(QuestSO questQuestSo, QuestState questState, int currentQuestStepIndex,
@@ -69,17 +57,9 @@ namespace jeanf.questsystem
                                  + "with the QuestInfo and the saved data is now out of sync. "
                                  + "Reset your data - as this might cause issues. QuestId: " + this.questSO.id);
             }
-
-
-
-            //AddToStepMap(questSteps);
-
         }
 
-        public void SaveQuestTreeState(BaseGraph tree, Dictionary<string, QuestStep> stepDictionary)
-        {
-            
-        }
+
         
         public void StoreQuestStepState(QuestStepState questStepState, int stepIndex)
         {
@@ -94,52 +74,12 @@ namespace jeanf.questsystem
             }
         }
 
-        public void InstantiateCurrentQuestStep(QuestStep step, Transform parent)
-        {
-            Object.Instantiate(step.PrefabToInstantiate, parent);
-        }
-
-
-
-        
-
-        /*public QuestData GetQuestData()
-        {
-            return new QuestData(state, currentQuestStepIndex, questStepStates);
-        }*/
-
-
-        //public void InstantiateCurrentQuestStep(Transform parentTransform)
+        //public QuestData GetQuestData()
         //{
-        //    GameObject questStepPrefab = GetCurrentQuestStepPrefab();
-        //    if (questStepPrefab != null)
-        //    {
-        //        QuestStep questStep = Object.Instantiate<GameObject>(questStepPrefab, parentTransform)
-        //            .GetComponent<QuestStep>();
-        //        questStep.InitializeQuestStep(info.id, currentQuestStepIndex,
-        //            questStepStates[currentQuestStepIndex].state);
-        //    }
+        //    return new QuestData(state, currentQuestStepIndex, questStepStates);
         //}
 
-        //private void AddToStepMap(List<QuestStep> questSteps)
-        //{
-        //    questStepSender?.Invoke(questSteps);
-        //    //if (questStep.QuestId != questSO.id)
-        //    //{
-        //    //    return;
-        //    //}
 
-
-        //    //if (stepDictionary.ContainsKey(questStep.StepId))
-        //    //{
-        //    //    Debug.Log(questStep.GetStatus());
-        //    //    stepDictionary[questStep.StepId].stepStatus = questStep.GetStatus();
-        //    //}
-        //    //else
-        //    //{
-        //    //    stepDictionary.Add(questStep.StepId, questStep);
-        //    //}
-        //}
 
         //public QuestStepStatus GetQuestStepStatusById(string id)
         //{
