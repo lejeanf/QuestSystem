@@ -5,6 +5,7 @@ using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
 
+
 namespace jeanf.questsystem
 {
     public class QuestItem : MonoBehaviour, IDebugBehaviour, IValidatable
@@ -20,7 +21,10 @@ namespace jeanf.questsystem
         [SerializeField] private bool _startQuestOnEnable = false;
 
         [Tooltip("Visual feedback for the quest state")] [Header("Quest")] [SerializeField]
-        private QuestInfoSO questInfoForPoint;
+        private QuestSO questSO;
+        private Dictionary<string, QuestStep> stepMap = new Dictionary<string, QuestStep>();
+        private Dictionary<string, QuestStep> activeSteps = new Dictionary<string, QuestStep>();
+
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
         private float progress = 0.0f;
@@ -41,100 +45,84 @@ namespace jeanf.questsystem
         [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
         private StringEventChannelSO requirementCheck;
 
+        #region Awake/Enable/Disable
         private void Awake()
         {
-            questId = questInfoForPoint.id;
-        }
-
-        #if UNITY_EDITOR
-        public void OnValidate()
-        {
-            ValidityCheck();
-        }
-        #endif
-
-        private void ValidityCheck()
-        {
-            const string searching = "attempting to find";
-            const string _ = "Quests/Channels"; // search target
-            const string searchLocation = "the resources folder";
-            const string readInstructions = "please read the package instruction for further help";
-            
-            
-            var validityCheck = true;
-            var invalidObjects = new List<object>();
-            var errorMessages = new List<string>();
-            
-            
-            if (QuestInitialCheck == null)
+            questId = questSO.id;
+            for (int i = 0; i < questSO.questSteps.Length; i++)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestInitialCheck in {searchLocation} ", this);
-                QuestInitialCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestInitialCheck");
-                if (QuestProgress == null)
+                if (!stepMap.ContainsKey(questSO.questSteps[i].StepId))
                 {
-                    errorMessages.Add($"{_}/QuestInitialCheck is not in {searchLocation} {readInstructions}");
-                    validityCheck = false;
-                    invalidObjects.Add(QuestProgress);
-                }
-
-            }
-            
-            if (QuestProgress == null)
-            {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestsProgressChannel in {searchLocation} ", this);
-                QuestProgress = Resources.Load<StringFloatEventChannelSO>($"{_}/QuestsProgressChannel");
-                if (QuestProgress == null)
-                {
-                    errorMessages.Add($"{_}/QuestsProgressChannel is not in {searchLocation} {readInstructions}");
-                    validityCheck = false;
-                    invalidObjects.Add(QuestProgress);
-                }
-
-            }
-
-            if (StartQuestEventChannel == null)
-            {
-                if (isDebug) Debug.Log($"{searching} {_}/StartQuestEventChannel in {searchLocation}", this);
-                StartQuestEventChannel = Resources.Load<StringEventChannelSO>($"{_}/StartQuestEventChannel");
-                if (StartQuestEventChannel == null)
-                {
-                    errorMessages.Add($"{_}/StartQuestEventChannel is not {searchLocation} {readInstructions}");
-                    validityCheck = false;
-                    invalidObjects.Add(StartQuestEventChannel);
+                    Debug.Log($"id on awake {questSO.questSteps[i].StepId}, added to {this.name}'s dictionary", this);
+                    stepMap.Add(questSO.questSteps[i].StepId, questSO.questSteps[i]);
                 }
             }
 
-
-            if (requirementCheck == null)
+            foreach (QuestStep step in stepMap.Values)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestRequirementCheck in {searchLocation}", this);
-                requirementCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestRequirementCheck");
-                if (requirementCheck == null)
+                if (step.isRootStep)
                 {
-                    errorMessages.Add($"{_}/QuestRequirementCheck is not {searchLocation} {readInstructions}");
-                    validityCheck = false;
-                    invalidObjects.Add(requirementCheck);
+                    InstantiateQuestStep(step.StepId);
                 }
-            }
-            
-            IsValid = validityCheck;
-            
-            if(!IsValid) return;
-            if (IsValid && !Application.isPlaying) return;
-            
-            for(var i = 0 ; i < invalidObjects.Count ; i++)
-            {
-                Debug.LogError($"Error: {errorMessages[i]} " , this.gameObject);
             }
         }
 
         private void OnEnable()
         {
             Subscribe();
-    
+
             Init(questId);
         }
+        private void OnDisable() => Unsubscribe();
+        private void OnDestroy() => Unsubscribe();
 
+        private void Subscribe()
+        {
+            QuestInitialCheck.OnEventRaised += InitialCheckFromQuestManager;
+            StartQuestEventChannel.OnEventRaised += RequestQuestStart;
+            QuestProgress.OnEventRaised += UpdateProgress;
+            GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
+            GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
+            QuestStep.sendNextStepId += InstantiateQuestStep;
+            QuestStep.stepCompleted += DestroyQuestStep;
+
+        }
+
+        private void Unsubscribe()
+        {
+            QuestInitialCheck.OnEventRaised -= InitialCheckFromQuestManager;
+            StartQuestEventChannel.OnEventRaised -= RequestQuestStart;
+            QuestProgress.OnEventRaised -= UpdateProgress;
+            GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
+            GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
+            QuestStep.sendNextStepId -= InstantiateQuestStep;
+            QuestStep.stepCompleted -= DestroyQuestStep;
+
+        }
+        #endregion
+       
+        #region Step Instantiation & Destroy
+        public void InstantiateQuestStep(string id)
+        {
+
+            if (stepMap.ContainsKey(id))
+            {
+                activeSteps.Add(id, Instantiate(stepMap[id]));
+            }
+        }
+
+        public void DestroyQuestStep(string id)
+        {
+            if (activeSteps.ContainsKey(id))
+            {
+                Destroy(activeSteps[id].gameObject);
+                activeSteps.Remove(id);
+            }
+        }
+        #endregion
+
+
+        #region quest process
         private void Init(string id)
         {
             
@@ -149,26 +137,7 @@ namespace jeanf.questsystem
             Init(id);
         }
 
-        private void OnDisable() => Unsubscribe();
-        private void OnDestroy() => Unsubscribe();
 
-        private void Subscribe()
-        {
-            QuestInitialCheck.OnEventRaised += InitialCheckFromQuestManager;
-            StartQuestEventChannel.OnEventRaised += RequestQuestStart;
-            QuestProgress.OnEventRaised += UpdateProgress;
-            GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
-            GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
-        }
-
-        private void Unsubscribe()
-        {
-            QuestInitialCheck.OnEventRaised -= InitialCheckFromQuestManager;
-            StartQuestEventChannel.OnEventRaised -= RequestQuestStart;
-            QuestProgress.OnEventRaised -= UpdateProgress;
-            GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
-            GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
-        }
 
         private void UpdateState()
         {
@@ -216,7 +185,7 @@ namespace jeanf.questsystem
         private void QuestStateChange(Quest quest)
         {
             // only update the quest state if this point has the corresponding quest
-            if (quest.info.id.Equals(questId))
+            if (quest.questSO.id.Equals(questId))
             {
                 currentQuestState = quest.state;
                 UpdateState();
@@ -240,6 +209,91 @@ namespace jeanf.questsystem
             AllClear(true);
             if(isDebug) Debug.Log($"Quest start was requested for quest {id}.", this);
         }
+        #endregion
 
+        #region validation tools
+
+#if UNITY_EDITOR
+        public void OnValidate()
+        {
+            ValidityCheck();
+        }
+#endif
+
+        private void ValidityCheck()
+        {
+            const string searching = "attempting to find";
+            const string _ = "Quests/Channels"; // search target
+            const string searchLocation = "the resources folder";
+            const string readInstructions = "please read the package instruction for further help";
+
+
+            var validityCheck = true;
+            var invalidObjects = new List<object>();
+            var errorMessages = new List<string>();
+
+
+            if (QuestInitialCheck == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestInitialCheck in {searchLocation} ", this);
+                QuestInitialCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestInitialCheck");
+                if (QuestProgress == null)
+                {
+                    errorMessages.Add($"{_}/QuestInitialCheck is not in {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(QuestProgress);
+                }
+
+            }
+
+            if (QuestProgress == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestsProgressChannel in {searchLocation} ", this);
+                QuestProgress = Resources.Load<StringFloatEventChannelSO>($"{_}/QuestsProgressChannel");
+                if (QuestProgress == null)
+                {
+                    errorMessages.Add($"{_}/QuestsProgressChannel is not in {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(QuestProgress);
+                }
+
+            }
+
+            if (StartQuestEventChannel == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/StartQuestEventChannel in {searchLocation}", this);
+                StartQuestEventChannel = Resources.Load<StringEventChannelSO>($"{_}/StartQuestEventChannel");
+                if (StartQuestEventChannel == null)
+                {
+                    errorMessages.Add($"{_}/StartQuestEventChannel is not {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(StartQuestEventChannel);
+                }
+            }
+
+
+            if (requirementCheck == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/QuestRequirementCheck in {searchLocation}", this);
+                requirementCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestRequirementCheck");
+                if (requirementCheck == null)
+                {
+                    errorMessages.Add($"{_}/QuestRequirementCheck is not {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(requirementCheck);
+                }
+            }
+
+            IsValid = validityCheck;
+
+            if (!IsValid) return;
+            if (IsValid && !Application.isPlaying) return;
+
+            for (var i = 0; i < invalidObjects.Count; i++)
+            {
+                Debug.LogError($"Error: {errorMessages[i]} ", this.gameObject);
+            }
+        }
+        #endregion
     }
 }

@@ -1,0 +1,153 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31390c44c9f3a3d40b424bf6821999a2, type: 3}
+  m_Name: QuestTree
+  m_EditorClassIdentifier: 
+  serializedNodes: []
+  nodes:
+  - rid: 932772974712848386
+  - rid: 5441983477454733312
+  - rid: 5441983477454733314
+  - rid: 5441983477454733315
+  edges:
+  - GUID: d2501047-f3f8-4e5b-b408-184b0ed40f54
+    owner: {fileID: 11400000}
+    inputNodeGUID: 747194d7-b4d7-451c-bcc3-640f7cee7996
+    outputNodeGUID: 22eaa444-7aee-40c1-95c8-58755b6df7ee
+    inputFieldName: input
+    outputFieldName: executes
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: eb6d0e45-53f9-4630-8a7b-219b5e1b1dec
+    owner: {fileID: 11400000}
+    inputNodeGUID: cd37bb76-9df5-41e6-bbb8-f522276a6893
+    outputNodeGUID: 747194d7-b4d7-451c-bcc3-640f7cee7996
+    inputFieldName: input
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  - GUID: e8b312c7-6f43-4816-9718-755bd654a028
+    owner: {fileID: 11400000}
+    inputNodeGUID: 7ff501cc-6d32-4fd6-be92-f45aa073fcf2
+    outputNodeGUID: 747194d7-b4d7-451c-bcc3-640f7cee7996
+    inputFieldName: input
+    outputFieldName: output
+    inputPortIdentifier: 
+    outputPortIdentifier: 
+  groups: []
+  stackNodes: []
+  pinnedElements:
+  - position:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 150
+      height: 200
+    opened: 1
+    editorType:
+      serializedType: GraphProcessor.ProcessorView, com.alelievr.NodeGraphProcessor.Editor,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - position:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 154
+      height: 217
+    opened: 1
+    editorType:
+      serializedType: GraphProcessor.ExposedParameterView, com.alelievr.NodeGraphProcessor.Editor,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - position:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 150
+      height: 200
+    opened: 1
+    editorType:
+      serializedType: ConditionalProcessorView, Assembly-CSharp-Editor, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+  exposedParameters: []
+  serializedParameterList: []
+  stickyNotes: []
+  nodeInspectorReference: {fileID: 0}
+  position: {x: -12, y: -23, z: 0}
+  scale: {x: 1, y: 1, z: 1}
+  references:
+    version: 2
+    RefIds:
+    - rid: 932772974712848386
+      type: {class: StartNode, ns: NodeGraphProcessor.Examples, asm: jeanf.questSystem}
+      data:
+        nodeCustomName: 
+        GUID: 22eaa444-7aee-40c1-95c8-58755b6df7ee
+        computeOrder: 0
+        position:
+          serializedVersion: 2
+          x: 351.25806
+          y: 74.39978
+          width: 88
+          height: 75.2
+        expanded: 0
+        debug: 0
+        nodeLock: 0
+    - rid: 5441983477454733312
+      type: {class: QuestStepNode, ns: , asm: jeanf.questSystem}
+      data:
+        nodeCustomName: 
+        GUID: 747194d7-b4d7-451c-bcc3-640f7cee7996
+        computeOrder: 1
+        position:
+          serializedVersion: 2
+          x: 454.2889
+          y: 157.84573
+          width: 368
+          height: 94
+        expanded: 0
+        debug: 0
+        nodeLock: 0
+        _questStep: {fileID: 8217525398243399139, guid: f0d6f7cb9384d8a48988c664d79aaa7a,
+          type: 3}
+    - rid: 5441983477454733314
+      type: {class: QuestStepNode, ns: , asm: jeanf.questSystem}
+      data:
+        nodeCustomName: 
+        GUID: cd37bb76-9df5-41e6-bbb8-f522276a6893
+        computeOrder: 2
+        position:
+          serializedVersion: 2
+          x: 264
+          y: 323
+          width: 330
+          height: 94
+        expanded: 0
+        debug: 0
+        nodeLock: 0
+        _questStep: {fileID: 1831462745930314621, guid: 1f7ea9a3ab5caab4e831634d4b8ea70e,
+          type: 3}
+    - rid: 5441983477454733315
+      type: {class: QuestStepNode, ns: , asm: jeanf.questSystem}
+      data:
+        nodeCustomName: 
+        GUID: 7ff501cc-6d32-4fd6-be92-f45aa073fcf2
+        computeOrder: 3
+        position:
+          serializedVersion: 2
+          x: 660.8
+          y: 323
+          width: 395
+          height: 94
+        expanded: 0
+        debug: 0
+        nodeLock: 0
+        _questStep: {fileID: 3755366704566743636, guid: d1504d3a207ad594b99ed1c56c417ff3,
+          type: 3}

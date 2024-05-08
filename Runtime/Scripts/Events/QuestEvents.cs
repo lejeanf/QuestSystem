@@ -18,17 +18,6 @@ namespace jeanf.questsystem
             }
         }
 
-        public event Action<string> onAdvanceQuest;
-
-        public void AdvanceQuest(string id)
-        {
-            if (onAdvanceQuest != null)
-            {
-                Debug.Log($"advancing quest: {id}");
-                onAdvanceQuest(id);
-            }
-        }
-
         public event Action<string> onFinishQuest;
 
         public void FinishQuest(string id)
@@ -46,21 +35,21 @@ namespace jeanf.questsystem
         {
             if (onQuestStateChange != null)
             {
-                Debug.Log($"quest state change: {quest.info.id} -- state: {quest.state}");
+                Debug.Log($"quest state change: {quest.questSO.id} -- state: {quest.state}");
                 onQuestStateChange(quest);
             }
         }
 
-        public event Action<string, int, QuestStepState> onQuestStepStateChange;
+        //public event Action<string, int, QuestStepState> onQuestStepStateChange;
 
-        public void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
-        {
-            if (onQuestStepStateChange != null)
-            {
-                Debug.Log($"quest step state change: {id} -- stepstate: {questStepState}");
-                onQuestStepStateChange(id, stepIndex, questStepState);
-            }
-        }
+        //public void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
+        //{
+        //    if (onQuestStepStateChange != null)
+        //    {
+        //        Debug.Log($"quest step state change: {id} -- stepstate: {questStepState}");
+        //        onQuestStepStateChange(id, stepIndex, questStepState);
+        //    }
+        //}
 
     }
 }
