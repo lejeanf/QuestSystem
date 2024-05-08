@@ -16,75 +16,68 @@ namespace jeanf.questsystem
 
         // state info
         public QuestState state;
-        private QuestStepState[] questStepStates;
+        //private QuestStepState[] questStepStates;
         public StringEventChannelSO messageChannel;
         public bool sendMessageOnInitialization = false;
         public string messageToSendOnInit = "";
         public bool sendMessageOnFinish = false;
         public string messageToSendOnFinish = "";
 
-        public Quest(QuestSO questQuestSo)
+        public Quest(QuestSO questSO)
         {
-            this.questSO = questQuestSo;
+            this.questSO = questSO;
             this.state = QuestState.REQUIREMENTS_NOT_MET;
-            this.questStepStates = new QuestStepState[questSO.questSteps.Length];
-            this.messageChannel = questQuestSo.messageChannel;
+            //this.questStepStates = new QuestStepState[this.questSO.questSteps.Length];
+            this.messageChannel = questSO.messageChannel;
             //init
-            this.sendMessageOnInitialization = questQuestSo.sendMessageOnInitialization;
-            this.messageToSendOnInit = questQuestSo.messageToSendOnInitialization;
+            this.sendMessageOnInitialization = questSO.sendMessageOnInitialization;
+            this.messageToSendOnInit = questSO.messageToSendOnInitialization;
             //finish
-            this.sendMessageOnFinish = questQuestSo.sendMessageOnFinish;
-            this.messageToSendOnFinish = questQuestSo.messageToSendOnFinish;
-            for (int i = 0; i < questStepStates.Length; i++)
-            {
-                questStepStates[i] = new QuestStepState();
-            }
+            this.sendMessageOnFinish = questSO.sendMessageOnFinish;
+            this.messageToSendOnFinish = questSO.messageToSendOnFinish;
+            //for (int i = 0; i < questStepStates.Length; i++)
+            //{
+            //    questStepStates[i] = new QuestStepState();
+            //}
         }
 
-        public Quest(QuestSO questQuestSo, QuestState questState, int currentQuestStepIndex,
-            QuestStepState[] questStepStates)
-        {
-            this.questSO = questQuestSo;
-            this.state = questState;
-            this.questStepStates = questStepStates;
+        //public Quest(QuestSO questQuestSo, QuestState questState, int currentQuestStepIndex,
+        //    QuestStepState[] questStepStates)
+        //{
+        //    this.questSO = questQuestSo;
+        //    this.state = questState;
+        //    //this.questStepStates = questStepStates;
 
-            // if the quest step states and prefabs are different lengths,
-            // something has changed during development and the saved data is out of sync.
-            if (this.questStepStates.Length != this.questSO.questSteps.Length)
-            {
-                Debug.LogWarning("Quest Step Prefabs and Quest Step States are "
-                                 + "of different lengths. This indicates something changed "
-                                 + "with the QuestInfo and the saved data is now out of sync. "
-                                 + "Reset your data - as this might cause issues. QuestId: " + this.questSO.id);
-            }
-        }
+        //    // if the quest step states and prefabs are different lengths,
+        //    // something has changed during development and the saved data is out of sync.
+        //    //if (this.questStepStates.Length != this.questSO.questSteps.Length)
+        //    //{
+        //    //    Debug.LogWarning("Quest Step Prefabs and Quest Step States are "
+        //    //                     + "of different lengths. This indicates something changed "
+        //    //                     + "with the QuestInfo and the saved data is now out of sync. "
+        //    //                     + "Reset your data - as this might cause issues. QuestId: " + this.questSO.id);
+        //    //}
+        //}
 
 
         
-        public void StoreQuestStepState(QuestStepState questStepState, int stepIndex)
-        {
-            if (stepIndex < questStepStates.Length)
-            {
-                questStepStates[stepIndex].state = questStepState.state;
-            }
-            else
-            {
-                Debug.LogWarning("Tried to access quest step data, but stepIndex was out of range: "
-                                 + "Quest Id = " + questSO.id + ", Step Index = " + stepIndex);
-            }
-        }
+        //public void StoreQuestStepState(QuestStepState questStepState, int stepIndex)
+        //{
+        //    if (stepIndex < questStepStates.Length)
+        //    {
+        //        questStepStates[stepIndex].state = questStepState.state;
+        //    }
+        //    else
+        //    {
+        //        Debug.LogWarning("Tried to access quest step data, but stepIndex was out of range: "
+        //                         + "Quest Id = " + questSO.id + ", Step Index = " + stepIndex);
+        //    }
+        //}
 
         //public QuestData GetQuestData()
         //{
         //    return new QuestData(state, currentQuestStepIndex, questStepStates);
         //}
 
-
-
-        //public QuestStepStatus GetQuestStepStatusById(string id)
-        //{
-        //    //QuestStepStatus status = stepDictionary[id].stepStatus;
-        //    //return status;
-        //}
     }
 }

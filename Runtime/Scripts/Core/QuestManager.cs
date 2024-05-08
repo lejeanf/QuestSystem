@@ -51,7 +51,7 @@ namespace jeanf.questsystem
             GameEventsManager.instance.questEvents.onStartQuest += StartQuest;
             GameEventsManager.instance.questEvents.onFinishQuest += FinishQuest;
 
-            GameEventsManager.instance.questEvents.onQuestStepStateChange += QuestStepStateChange;
+            //GameEventsManager.instance.questEvents.onQuestStepStateChange += QuestStepStateChange;
 
             GameEventsManager.instance.playerEvents.onPlayerLevelChange += PlayerLevelChange;
 
@@ -69,7 +69,7 @@ namespace jeanf.questsystem
             GameEventsManager.instance.questEvents.onStartQuest -= StartQuest;
             GameEventsManager.instance.questEvents.onFinishQuest -= FinishQuest;
 
-            GameEventsManager.instance.questEvents.onQuestStepStateChange -= QuestStepStateChange;
+            //GameEventsManager.instance.questEvents.onQuestStepStateChange -= QuestStepStateChange;
 
             GameEventsManager.instance.playerEvents.onPlayerLevelChange -= PlayerLevelChange;
 
@@ -169,12 +169,12 @@ namespace jeanf.questsystem
             GameEventsManager.instance.scenarioEvents.ScenarioUnlocked(quest.questSO.unlockedScenario);
         }
 
-        private void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
-        {
-            Quest quest = GetQuestById(id);
-            quest.StoreQuestStepState(questStepState, stepIndex);
-            ChangeQuestState(id, quest.state);
-        }
+        //private void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
+        //{
+        //    Quest quest = GetQuestById(id);
+        //    quest.StoreQuestStepState(questStepState, stepIndex);
+        //    ChangeQuestState(id, quest.state);
+        //}
 
         private Dictionary<string, Quest> CreateQuestMap()
         {
@@ -182,18 +182,18 @@ namespace jeanf.questsystem
             QuestSO[] allQuests = Resources.LoadAll<QuestSO>("Quests");
             // Create the quest map
             Dictionary<string, Quest> questMap = new Dictionary<string, Quest>();
-            foreach (QuestSO questInfo in allQuests)
+            foreach (QuestSO questSO in allQuests)
             {
-                var id = questInfo.id;
+                var id = questSO.id;
                 if (questMap.ContainsKey(id))
                 {
-                    Debug.LogWarning("Duplicate ID found when creating quest map: " + questInfo.id);
+                    Debug.LogWarning("Duplicate ID found when creating quest map: " + questSO.id);
                 }
                 else
                 {
-                    questMap.Add(id, LoadQuest(questInfo));
+                    questMap.Add(id, LoadQuest(questSO));
                 }
-                if(isDebug) Debug.Log($"Adding {questInfo.name} to the questmap, its id is: {questInfo.id}");
+                if(isDebug) Debug.Log($"Adding {questSO.name} to the questmap, its id is: {questSO.id}");
             }
 
             return questMap;
@@ -248,7 +248,7 @@ namespace jeanf.questsystem
                 {
                     string serializedData = PlayerPrefs.GetString(questInfo.id);
                     QuestData questData = JsonUtility.FromJson<QuestData>(serializedData);
-                    quest = new Quest(questInfo, questData.state, questData.questStepIndex, questData.questStepStates);
+                    //quest = new Quest(questInfo, questData.state, questData.questStepIndex, questData.questStepStates); => Refactor that with new saving system
                 }
                 // otherwise, initialize a new quest
                 else

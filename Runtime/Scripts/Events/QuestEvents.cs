@@ -40,16 +40,16 @@ namespace jeanf.questsystem
             }
         }
 
-        public event Action<string, int, QuestStepState> onQuestStepStateChange;
+        //public event Action<string, int, QuestStepState> onQuestStepStateChange;
 
-        public void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
-        {
-            if (onQuestStepStateChange != null)
-            {
-                Debug.Log($"quest step state change: {id} -- stepstate: {questStepState}");
-                onQuestStepStateChange(id, stepIndex, questStepState);
-            }
-        }
+        //public void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
+        //{
+        //    if (onQuestStepStateChange != null)
+        //    {
+        //        Debug.Log($"quest step state change: {id} -- stepstate: {questStepState}");
+        //        onQuestStepStateChange(id, stepIndex, questStepState);
+        //    }
+        //}
 
     }
 }
