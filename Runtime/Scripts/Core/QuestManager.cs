@@ -248,7 +248,7 @@ namespace jeanf.questsystem
                 {
                     string serializedData = PlayerPrefs.GetString(questInfo.id);
                     QuestData questData = JsonUtility.FromJson<QuestData>(serializedData);
-                    //quest = new Quest(questInfo, questData.state, questData.questStepIndex, questData.questStepStates); => Refactor that with new saving system
+                    quest = new Quest(questInfo, questData.state, questData.questStepIndex, questData.questStepStates); 
                 }
                 // otherwise, initialize a new quest
                 else

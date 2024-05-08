@@ -35,20 +35,20 @@ namespace jeanf.questsystem
         [DrawIf("isUsingIntroTimeline", true, ComparisonType.Equals, DisablingType.DontDraw)] 
         public PlayableAsset timeline;
 
+        [Header("Quest Step Progression events & Variables")]
         public List<QuestStep> questStepsToTrigger = new List<QuestStep>();
         public delegate void SendNextStepId(string id);
         public static SendNextStepId sendNextStepId;
         public bool isRootStep;
-
-        [Header("Event Channels")]
-        [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
-
         public delegate void StepCompleted(string id);
         public static StepCompleted stepCompleted;
         [Header("Quest Tooltip")]
         [SerializeField] private QuestTooltipSO questTooltipSO;
 
-        [SerializeField] QuestRequirementSO[] questRequirementSOList;
+        [Header("Event Channels")]
+        [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
+
+
 
 
         private void OnEnable()
@@ -134,19 +134,6 @@ namespace jeanf.questsystem
         {
             return stepStatus;
         }
-
-        public bool ValidateRequirements()
-        {
-            foreach(QuestRequirementSO requirement in questRequirementSOList)
-            {
-                if (!requirement.ValidateFulfilled())
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        
     }
 
     public enum QuestStepStatus

@@ -11,17 +11,17 @@ namespace jeanf.questsystem
     {
         // old constructor (linear structure)
         public QuestState state;
-        //public int questStepIndex;
-        //public QuestStepState[] questStepStates;
+        public int questStepIndex;
+        public QuestStepState[] questStepStates;
 
-        //public QuestData(QuestState state, int questStepIndex, QuestStepState[] questStepStates)
-        //{
-        //    this.state = state;
-        //    this.questStepIndex = questStepIndex;
-        //    this.questStepStates = questStepStates;
-        //}
-        
-        
+        public QuestData(QuestState state, int questStepIndex, QuestStepState[] questStepStates)
+        {
+            this.state = state;
+            this.questStepIndex = questStepIndex;
+            this.questStepStates = questStepStates;
+        }
+
+
         // new constructor (tree structure)
         public BaseGraph QuestTree;
         public Dictionary<string, QuestStep> QuestStepDictionary;
