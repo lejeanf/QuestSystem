@@ -4,6 +4,7 @@ using jeanf.EventSystem;
 using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
+using Unity.VisualScripting.YamlDotNet.Core.Tokens;
 
 
 namespace jeanf.questsystem
@@ -39,7 +40,6 @@ namespace jeanf.questsystem
         // if they do not exist simply right click in the hierarchy and find >InitializeQuestSystem<
         [Header("Listening on:")] 
         [SerializeField] [Validation("A reference to the QuestProgress SO is required")] private StringFloatEventChannelSO QuestProgress;
-        [SerializeField] [Validation("A reference to the StartQuestEventChannel SO is required")] private StringEventChannelSO StartQuestEventChannel;
         [SerializeField] [Validation("A reference to the QuestInitialCheck SO is required")] private StringEventChannelSO QuestInitialCheck;
 
         [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
@@ -78,8 +78,7 @@ namespace jeanf.questsystem
 
         private void Subscribe()
         {
-            QuestInitialCheck.OnEventRaised += InitialCheckFromQuestManager;
-            StartQuestEventChannel.OnEventRaised += RequestQuestStart;
+            QuestInitialCheck.OnEventRaised += Init;
             QuestProgress.OnEventRaised += UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
@@ -90,8 +89,7 @@ namespace jeanf.questsystem
 
         private void Unsubscribe()
         {
-            QuestInitialCheck.OnEventRaised -= InitialCheckFromQuestManager;
-            StartQuestEventChannel.OnEventRaised -= RequestQuestStart;
+            QuestInitialCheck.OnEventRaised -= Init;
             QuestProgress.OnEventRaised -= UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
@@ -123,18 +121,15 @@ namespace jeanf.questsystem
 
 
         #region quest process
-        private void Init(string id)
-        {
-            
-            Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
-            if (!_startQuestOnEnable) return;
-            RequestQuestStart(id);
-        }
 
-        private void InitialCheckFromQuestManager( string id)
+
+        private void Init( string id)
         {
-            Debug.Log($"Initial check for quest with id: [{id}], it is in the following state: [{currentQuestState}]");
-            Init(id);
+            if (!_startQuestOnEnable || id != questId) return;
+            clearToStart = true;
+            currentQuestState = QuestState.CAN_START;
+            requirementCheck.RaiseEvent(questId);
+            UpdateState();
         }
 
 
@@ -191,24 +186,6 @@ namespace jeanf.questsystem
                 UpdateState();
             }
         }
-
-        public void AllClear(bool value)
-        {
-            Debug.Log($"All clear for quest [{questId}], sending an update to the QuestManager");
-            clearToStart = value;
-            currentQuestState = QuestState.CAN_START;
-            requirementCheck.RaiseEvent(questId);
-            UpdateState();
-        }
-
-        private void RequestQuestStart(string id)
-        {
-            if(id!= questId) return;
-            
-            Debug.Log($"Requesting start for quest [{id}]");
-            AllClear(true);
-            if(isDebug) Debug.Log($"Quest start was requested for quest {id}.", this);
-        }
         #endregion
 
         #region validation tools
@@ -258,19 +235,6 @@ namespace jeanf.questsystem
                 }
 
             }
-
-            if (StartQuestEventChannel == null)
-            {
-                if (isDebug) Debug.Log($"{searching} {_}/StartQuestEventChannel in {searchLocation}", this);
-                StartQuestEventChannel = Resources.Load<StringEventChannelSO>($"{_}/StartQuestEventChannel");
-                if (StartQuestEventChannel == null)
-                {
-                    errorMessages.Add($"{_}/StartQuestEventChannel is not {searchLocation} {readInstructions}");
-                    validityCheck = false;
-                    invalidObjects.Add(StartQuestEventChannel);
-                }
-            }
-
 
             if (requirementCheck == null)
             {

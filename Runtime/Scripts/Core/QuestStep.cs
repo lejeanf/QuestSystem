@@ -23,8 +23,6 @@ namespace jeanf.questsystem
         public string QuestId { get { return questId; } }
 
         
-        private float questStepProgress = 0;
-        
         [field: ReadOnly] [SerializeField] public QuestStepStatus stepStatus;
 
         [Tooltip("This boolean has to be enabled if the quest step has an intro timeline.")]
