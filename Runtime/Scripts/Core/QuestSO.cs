@@ -5,6 +5,7 @@ using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace jeanf.questsystem
 {
@@ -29,6 +30,8 @@ namespace jeanf.questsystem
 
         [Header("Requirements")] public int levelRequirement;
         public QuestSO[] questPrerequisites;
+        public List<string> ScenesToLoad = new List<string>();
+        public List<int> roomsToUnlock = new List<int>();
 
         [Header("Steps")] public QuestStep[] questSteps;
 

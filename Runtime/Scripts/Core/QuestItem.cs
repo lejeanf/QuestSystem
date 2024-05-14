@@ -5,6 +5,7 @@ using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
 using Unity.VisualScripting.YamlDotNet.Core.Tokens;
+using UnityEngine.SceneManagement;
 
 
 namespace jeanf.questsystem
@@ -44,6 +45,8 @@ namespace jeanf.questsystem
 
         [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
         private StringEventChannelSO requirementCheck;
+        [SerializeField] StringEventChannelSO loadRequiredScenesEventChannel;
+        [SerializeField] IntEventChannelSO unlockDoorsEventChannel;
 
         #region Awake/Enable/Disable
         private void Awake()
@@ -65,6 +68,9 @@ namespace jeanf.questsystem
                     InstantiateQuestStep(step.StepId);
                 }
             }
+
+            LoadDependencies();
+            
         }
 
         private void OnEnable()
@@ -99,10 +105,9 @@ namespace jeanf.questsystem
         }
         #endregion
        
-        #region Step Instantiation & Destroy
+        #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
         {
-
             if (stepMap.ContainsKey(id))
             {
                 activeSteps.Add(id, Instantiate(stepMap[id]));
@@ -115,6 +120,19 @@ namespace jeanf.questsystem
             {
                 Destroy(activeSteps[id].gameObject);
                 activeSteps.Remove(id);
+            }
+        }
+
+        private void LoadDependencies()
+        {
+            foreach (string SceneToLoad in questSO.ScenesToLoad)
+            {
+                loadRequiredScenesEventChannel.RaiseEvent(SceneToLoad);
+            }
+
+            foreach (int roomToUnlock in questSO.roomsToUnlock)
+            {
+                unlockDoorsEventChannel.RaiseEvent(roomToUnlock);
             }
         }
         #endregion
