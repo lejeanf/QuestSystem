@@ -4,6 +4,7 @@ using jeanf.EventSystem;
 using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
+using UnityEditor;
 
 
 namespace jeanf.questsystem
@@ -106,7 +107,7 @@ namespace jeanf.questsystem
         {
             if (activeSteps.ContainsKey(id))
             {
-                Debug.Log("Step already in active steps");
+                Debug.Log($"Step with id:[{id}] is already in the list of active steps");
                 return;
             }
 
@@ -130,7 +131,8 @@ namespace jeanf.questsystem
         #region quest process
         private void Init(string id)
         {
-            
+            activeSteps.Clear();
+            activeSteps.TrimExcess();
             Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
             if (!_startQuestOnEnable) return;
             RequestQuestStart(id);
@@ -218,12 +220,24 @@ namespace jeanf.questsystem
 
         #region validation tools
 
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         public void OnValidate()
         {
             ValidityCheck();
         }
-#endif
+        #endif
+
+        
+        #if UNITY_EDITOR
+        public void LogActiveSteps()
+        {
+            Debug.Log($"There is {activeSteps.Count} active steps at the moment.");
+            foreach (var step in activeSteps.Keys)
+            {
+                Debug.Log($"active step: {step}");
+            }
+        }
+        #endif
 
         private void ValidityCheck()
         {
@@ -301,4 +315,20 @@ namespace jeanf.questsystem
         }
         #endregion
     }
+    
+    
+    #if UNITY_EDITOR
+    [CustomEditor(typeof(QuestItem))]
+    public class BoolEventOnClickEditor : Editor {
+        override public void  OnInspectorGUI () {
+            DrawDefaultInspector();
+            GUILayout.Space(10);
+            var eventToSend = (QuestItem) target;
+            if(GUILayout.Button("Log active steps", GUILayout.Height(30))) {
+                eventToSend.LogActiveSteps(); // how do i call this?
+            }
+            GUILayout.Space(10);
+        }
+    }
+    #endif
 }
