@@ -42,6 +42,10 @@ namespace jeanf.questsystem
         public bool isRootStep;
         public delegate void StepCompleted(string id);
         public static StepCompleted stepCompleted;
+        public delegate void StepActive(string id, QuestStepStatus stepStatus);
+        public static StepActive stepActive;
+        
+        
         [Header("Quest Tooltip")]
         [SerializeField] private QuestTooltipSO questTooltipSO;
 
@@ -64,6 +68,7 @@ namespace jeanf.questsystem
             Debug.Log($"Initializing quest with questId: {questId}");
 
             stepStatus = QuestStepStatus.Active;
+            stepActive?.Invoke(stepId, stepStatus);
 
 
             if (sendQuestStepTooltip != null)
@@ -98,6 +103,7 @@ namespace jeanf.questsystem
                 sendNextStepId?.Invoke(questStep.stepId);
             }
 
+            stepActive?.Invoke(stepId, stepStatus);
             stepCompleted?.Invoke(stepId);
 
             if (!isUsingIntroTimeline || !timeline) return;

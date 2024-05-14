@@ -25,6 +25,7 @@ namespace jeanf.questsystem
         private QuestSO questSO;
         private Dictionary<string, QuestStep> stepMap = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> activeSteps = new Dictionary<string, QuestStep>();
+        private Dictionary<string, QuestStep> completedSteps = new Dictionary<string, QuestStep>();
 
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
@@ -86,6 +87,7 @@ namespace jeanf.questsystem
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
             QuestStep.sendNextStepId += InstantiateQuestStep;
             QuestStep.stepCompleted += DestroyQuestStep;
+            QuestStep.stepActive += UpdateStepStatus;
 
         }
 
@@ -98,6 +100,7 @@ namespace jeanf.questsystem
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
             QuestStep.sendNextStepId -= InstantiateQuestStep;
             QuestStep.stepCompleted -= DestroyQuestStep;
+            QuestStep.stepActive -= UpdateStepStatus;
 
         }
         #endregion
@@ -127,12 +130,35 @@ namespace jeanf.questsystem
         }
         #endregion
 
+        public void UpdateStepStatus(string id, QuestStepStatus status)
+        {
+            switch (status)
+            {
+                case QuestStepStatus.Completed when activeSteps.ContainsKey(id):
+                    // put step in completed list
+                    activeSteps.Remove(id);
+                    completedSteps.Add(id, stepMap[id]);
+                    break;
+                case QuestStepStatus.Active when !activeSteps.ContainsKey(id):
+                    // put step in active list
+                    activeSteps.Add(id, stepMap[id]);
+                    break;
+                case QuestStepStatus.Inactive:
+                    // do nothing
+                default:
+                    // do nothing
+                    return;
+            }
+        }
 
         #region quest process
         private void Init(string id)
         {
             activeSteps.Clear();
             activeSteps.TrimExcess();
+            completedSteps.Clear();
+            completedSteps.TrimExcess();
+            
             Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
             if (!_startQuestOnEnable) return;
             RequestQuestStart(id);
