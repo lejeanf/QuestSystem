@@ -80,8 +80,8 @@ MonoBehaviour:
   serializedParameterList: []
   stickyNotes: []
   nodeInspectorReference: {fileID: 0}
-  position: {x: -12, y: -23, z: 0}
-  scale: {x: 1, y: 1, z: 1}
+  position: {x: -111.333336, y: 119.333336, z: 0}
+  scale: {x: 1.3225, y: 1.3225, z: 1}
   references:
     version: 2
     RefIds:
@@ -93,10 +93,10 @@ MonoBehaviour:
         computeOrder: 0
         position:
           serializedVersion: 2
-          x: 351.25806
-          y: 74.39978
-          width: 88
-          height: 75.2
+          x: 538.1009
+          y: 28.147438
+          width: 89.333374
+          height: 77.33333
         expanded: 0
         debug: 0
         nodeLock: 0

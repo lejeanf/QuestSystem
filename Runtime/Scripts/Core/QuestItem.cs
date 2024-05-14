@@ -104,6 +104,7 @@ namespace jeanf.questsystem
         #region Step Instantiation & Destroy
         public void InstantiateQuestStep(string id)
         {
+            if (activeSteps.ContainsKey(id)) return;
 
             if (stepMap.ContainsKey(id))
             {
