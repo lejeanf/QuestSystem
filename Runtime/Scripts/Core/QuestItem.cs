@@ -6,6 +6,7 @@ using jeanf.propertyDrawer;
 using jeanf.validationTools;
 using Unity.VisualScripting.YamlDotNet.Core.Tokens;
 using UnityEngine.SceneManagement;
+using UnityEditor;
 
 
 namespace jeanf.questsystem
@@ -26,6 +27,7 @@ namespace jeanf.questsystem
         private QuestSO questSO;
         private Dictionary<string, QuestStep> stepMap = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> activeSteps = new Dictionary<string, QuestStep>();
+        private Dictionary<string, QuestStep> completedSteps = new Dictionary<string, QuestStep>();
 
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
@@ -90,6 +92,7 @@ namespace jeanf.questsystem
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
             QuestStep.sendNextStepId += InstantiateQuestStep;
             QuestStep.stepCompleted += DestroyQuestStep;
+            QuestStep.stepActive += UpdateStepStatus;
 
         }
 
@@ -101,6 +104,7 @@ namespace jeanf.questsystem
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
             QuestStep.sendNextStepId -= InstantiateQuestStep;
             QuestStep.stepCompleted -= DestroyQuestStep;
+            QuestStep.stepActive -= UpdateStepStatus;
 
         }
         #endregion
@@ -108,9 +112,15 @@ namespace jeanf.questsystem
         #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
         {
+            if (activeSteps.ContainsKey(id))
+            {
+                Debug.Log($"Step with id:[{id}] is already in the list of active steps");
+                return;
+            }
+
             if (stepMap.ContainsKey(id))
             {
-                activeSteps.Add(id, Instantiate(stepMap[id]));
+                activeSteps.Add(id,Instantiate(stepMap[id], this.transform, true));
             }
         }
 
@@ -137,20 +147,43 @@ namespace jeanf.questsystem
         }
         #endregion
 
+        public void UpdateStepStatus(string id, QuestStepStatus status)
+        {
+            switch (status)
+            {
+                case QuestStepStatus.Completed when activeSteps.ContainsKey(id):
+                    // put step in completed list
+                    activeSteps.Remove(id);
+                    completedSteps.Add(id, stepMap[id]);
+                    break;
+                case QuestStepStatus.Active when !activeSteps.ContainsKey(id):
+                    // put step in active list
+                    activeSteps.Add(id, stepMap[id]);
+                    break;
+                case QuestStepStatus.Inactive:
+                    // do nothing
+                default:
+                    // do nothing
+                    return;
+            }
+        }
 
         #region quest process
-
-
-        private void Init( string id)
+        private void Init(string id)
         {
+            activeSteps.Clear();
+            activeSteps.TrimExcess();
+            completedSteps.Clear();
+            completedSteps.TrimExcess();
+            
+            Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
+            if (!_startQuestOnEnable) return;
             if (!_startQuestOnEnable || id != questId) return;
             clearToStart = true;
             currentQuestState = QuestState.CAN_START;
             requirementCheck.RaiseEvent(questId);
             UpdateState();
         }
-
-
 
         private void UpdateState()
         {
@@ -208,12 +241,24 @@ namespace jeanf.questsystem
 
         #region validation tools
 
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         public void OnValidate()
         {
             ValidityCheck();
         }
-#endif
+        #endif
+
+        
+        #if UNITY_EDITOR
+        public void LogActiveSteps()
+        {
+            Debug.Log($"There is {activeSteps.Count} active steps at the moment.");
+            foreach (var step in activeSteps.Keys)
+            {
+                Debug.Log($"active step: {step}");
+            }
+        }
+        #endif
 
         private void ValidityCheck()
         {
@@ -278,4 +323,20 @@ namespace jeanf.questsystem
         }
         #endregion
     }
+    
+    
+    #if UNITY_EDITOR
+    [CustomEditor(typeof(QuestItem))]
+    public class BoolEventOnClickEditor : Editor {
+        override public void  OnInspectorGUI () {
+            DrawDefaultInspector();
+            GUILayout.Space(10);
+            var eventToSend = (QuestItem) target;
+            if(GUILayout.Button("Log active steps", GUILayout.Height(30))) {
+                eventToSend.LogActiveSteps(); // how do i call this?
+            }
+            GUILayout.Space(10);
+        }
+    }
+    #endif
 }

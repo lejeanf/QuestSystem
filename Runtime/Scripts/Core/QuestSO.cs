@@ -18,8 +18,6 @@ namespace jeanf.questsystem
         public bool IsValid { get; private set; }
 
         [Header("General")] public string displayName;
-        [SerializeField][Validation("A reference to a BaseGraph is required.")] public BaseGraph QuestTree;
-        [SerializeField] public QuestStep startingStep;
         
         [Header("Custom messages init/finish")] 
         [SerializeField] public StringEventChannelSO messageChannel; //change to delegate?
@@ -44,12 +42,6 @@ namespace jeanf.questsystem
             var validityCheck = true;
             var invalidObjects = new List<object>();
             var errorMessages = new List<string>();
-
-            if (QuestTree == null)
-            {
-                validityCheck = false;
-                invalidObjects.Add(QuestTree);
-            }
 
             IsValid = validityCheck;
             if (!IsValid) return;
