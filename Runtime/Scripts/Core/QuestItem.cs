@@ -62,17 +62,6 @@ namespace jeanf.questsystem
                     stepMap.Add(questSO.questSteps[i].StepId, questSO.questSteps[i]);
                 }
             }
-
-            foreach (QuestStep step in stepMap.Values)
-            {
-                if (step.isRootStep)
-                {
-                    InstantiateQuestStep(step.StepId);
-                }
-            }
-
-            LoadDependencies();
-            
         }
 
         private void OnEnable()
@@ -125,11 +114,10 @@ namespace jeanf.questsystem
         }
 
         public void DestroyQuestStep(string id)
-        {
+      {
             if (activeSteps.ContainsKey(id))
             {
                 Destroy(activeSteps[id].gameObject);
-                activeSteps.Remove(id);
             }
         }
 
@@ -175,14 +163,23 @@ namespace jeanf.questsystem
             activeSteps.TrimExcess();
             completedSteps.Clear();
             completedSteps.TrimExcess();
-            
+
             Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
-            if (!_startQuestOnEnable) return;
             if (!_startQuestOnEnable || id != questId) return;
             clearToStart = true;
             currentQuestState = QuestState.CAN_START;
             requirementCheck.RaiseEvent(questId);
             UpdateState();
+
+            foreach (QuestStep step in stepMap.Values)
+            {
+                if (step.isRootStep)
+                {
+                    InstantiateQuestStep(step.StepId);
+                }
+            }
+
+            LoadDependencies();
         }
 
         private void UpdateState()
