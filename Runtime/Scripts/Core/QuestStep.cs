@@ -100,9 +100,9 @@ namespace jeanf.questsystem
             {
                 sendNextStepId?.Invoke(questStep.stepId);
             }
-
-            stepActive?.Invoke(stepId, stepStatus);
             stepCompleted?.Invoke(stepId);
+            stepActive?.Invoke(stepId, stepStatus);
+
 
             if (!isUsingIntroTimeline || !timeline) return;
             //if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");
