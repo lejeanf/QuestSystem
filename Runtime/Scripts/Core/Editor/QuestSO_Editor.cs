@@ -4,7 +4,7 @@ using jeanf.questsystem;
 using UnityEditor;
 using UnityEngine;
 
-public class QuestInfoSO_Editor : Editor
+public class QuestSO_Editor : Editor
 {
     [CustomEditor(typeof(QuestSO))]
     public class BoolEventOnClickEditor : Editor {
