@@ -14,8 +14,6 @@ namespace jeanf.questsystem
     [System.Serializable, NodeMenuItem("questSystem/QuestStep")]
     public class QuestStep : MonoBehaviour, IDebugBehaviour
     {
-
-        public GameObject PrefabToInstantiate;
         [field: Space(10)][field: ReadOnly][SerializeField] string stepId;
         public string StepId { get { return stepId; } }
 
