@@ -39,17 +39,5 @@ namespace jeanf.questsystem
                 onQuestStateChange(quest);
             }
         }
-
-        //public event Action<string, int, QuestStepState> onQuestStepStateChange;
-
-        //public void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
-        //{
-        //    if (onQuestStepStateChange != null)
-        //    {
-        //        Debug.Log($"quest step state change: {id} -- stepstate: {questStepState}");
-        //        onQuestStepStateChange(id, stepIndex, questStepState);
-        //    }
-        //}
-
     }
 }

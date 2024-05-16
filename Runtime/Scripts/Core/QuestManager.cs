@@ -238,27 +238,27 @@ namespace jeanf.questsystem
             }
         }
 
-        private Quest LoadQuest(QuestSO questInfo)
+        private Quest LoadQuest(QuestSO questSO)
         {
             Quest quest = null;
             try
             {
                 // load quest from saved data
-                if (PlayerPrefs.HasKey(questInfo.id) && loadSavedQuestState)
+                if (PlayerPrefs.HasKey(questSO.id) && loadSavedQuestState)
                 {
-                    string serializedData = PlayerPrefs.GetString(questInfo.id);
+                    string serializedData = PlayerPrefs.GetString(questSO.id);
                     QuestData questData = JsonUtility.FromJson<QuestData>(serializedData);
-                    quest = new Quest(questInfo, questData.state, questData.questStepIndex, questData.questStepStates); 
+                    quest = new Quest(questSO, questData.state, questData.questStepIndex, questData.questStepStates); 
                 }
                 // otherwise, initialize a new quest
                 else
                 {
-                    quest = new Quest(questInfo);
+                    quest = new Quest(questSO);
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Failed to load quest with id " + quest.questSO.id + ": " + e);
+                //Debug.LogError("Failed to load quest with id " + quest.questSO.id + ": " + e);
             }
 
             return quest;

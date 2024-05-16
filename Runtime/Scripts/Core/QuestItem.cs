@@ -4,6 +4,8 @@ using jeanf.EventSystem;
 using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
+using Unity.VisualScripting.YamlDotNet.Core.Tokens;
+using UnityEngine.SceneManagement;
 using UnityEditor;
 
 
@@ -41,11 +43,12 @@ namespace jeanf.questsystem
         // if they do not exist simply right click in the hierarchy and find >InitializeQuestSystem<
         [Header("Listening on:")] 
         [SerializeField] [Validation("A reference to the QuestProgress SO is required")] private StringFloatEventChannelSO QuestProgress;
-        [SerializeField] [Validation("A reference to the StartQuestEventChannel SO is required")] private StringEventChannelSO StartQuestEventChannel;
         [SerializeField] [Validation("A reference to the QuestInitialCheck SO is required")] private StringEventChannelSO QuestInitialCheck;
 
         [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
         private StringEventChannelSO requirementCheck;
+        [SerializeField] StringEventChannelSO loadRequiredScenesEventChannel;
+        [SerializeField] IntEventChannelSO unlockDoorsEventChannel;
 
         #region Awake/Enable/Disable
         private void Awake()
@@ -57,14 +60,6 @@ namespace jeanf.questsystem
                 {
                     Debug.Log($"id on awake {questSO.questSteps[i].StepId}, added to {this.name}'s dictionary", this);
                     stepMap.Add(questSO.questSteps[i].StepId, questSO.questSteps[i]);
-                }
-            }
-
-            foreach (QuestStep step in stepMap.Values)
-            {
-                if (step.isRootStep)
-                {
-                    InstantiateQuestStep(step.StepId);
                 }
             }
         }
@@ -80,8 +75,7 @@ namespace jeanf.questsystem
 
         private void Subscribe()
         {
-            QuestInitialCheck.OnEventRaised += InitialCheckFromQuestManager;
-            StartQuestEventChannel.OnEventRaised += RequestQuestStart;
+            QuestInitialCheck.OnEventRaised += Init;
             QuestProgress.OnEventRaised += UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
@@ -93,8 +87,7 @@ namespace jeanf.questsystem
 
         private void Unsubscribe()
         {
-            QuestInitialCheck.OnEventRaised -= InitialCheckFromQuestManager;
-            StartQuestEventChannel.OnEventRaised -= RequestQuestStart;
+            QuestInitialCheck.OnEventRaised -= Init;
             QuestProgress.OnEventRaised -= UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
@@ -105,7 +98,7 @@ namespace jeanf.questsystem
         }
         #endregion
        
-        #region Step Instantiation & Destroy
+        #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
         {
             if (activeSteps.ContainsKey(id))
@@ -121,11 +114,23 @@ namespace jeanf.questsystem
         }
 
         public void DestroyQuestStep(string id)
-        {
+      {
             if (activeSteps.ContainsKey(id))
             {
                 Destroy(activeSteps[id].gameObject);
-                activeSteps.Remove(id);
+            }
+        }
+
+        private void LoadDependencies()
+        {
+            foreach (string SceneToLoad in questSO.ScenesToLoad)
+            {
+                loadRequiredScenesEventChannel.RaiseEvent(SceneToLoad);
+            }
+
+            foreach (int roomToUnlock in questSO.roomsToUnlock)
+            {
+                unlockDoorsEventChannel.RaiseEvent(roomToUnlock);
             }
         }
         #endregion
@@ -158,19 +163,24 @@ namespace jeanf.questsystem
             activeSteps.TrimExcess();
             completedSteps.Clear();
             completedSteps.TrimExcess();
-            
+
             Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
-            if (!_startQuestOnEnable) return;
-            RequestQuestStart(id);
+            if (!_startQuestOnEnable || id != questId) return;
+            clearToStart = true;
+            currentQuestState = QuestState.CAN_START;
+            requirementCheck.RaiseEvent(questId);
+            UpdateState();
+
+            foreach (QuestStep step in stepMap.Values)
+            {
+                if (step.isRootStep)
+                {
+                    InstantiateQuestStep(step.StepId);
+                }
+            }
+
+            LoadDependencies();
         }
-
-        private void InitialCheckFromQuestManager( string id)
-        {
-            Debug.Log($"Initial check for quest with id: [{id}], it is in the following state: [{currentQuestState}]");
-            Init(id);
-        }
-
-
 
         private void UpdateState()
         {
@@ -223,24 +233,6 @@ namespace jeanf.questsystem
                 currentQuestState = quest.state;
                 UpdateState();
             }
-        }
-
-        public void AllClear(bool value)
-        {
-            Debug.Log($"All clear for quest [{questId}], sending an update to the QuestManager");
-            clearToStart = value;
-            currentQuestState = QuestState.CAN_START;
-            requirementCheck.RaiseEvent(questId);
-            UpdateState();
-        }
-
-        private void RequestQuestStart(string id)
-        {
-            if(id!= questId) return;
-            
-            Debug.Log($"Requesting start for quest [{id}]");
-            AllClear(true);
-            if(isDebug) Debug.Log($"Quest start was requested for quest {id}.", this);
         }
         #endregion
 
@@ -303,19 +295,6 @@ namespace jeanf.questsystem
                 }
 
             }
-
-            if (StartQuestEventChannel == null)
-            {
-                if (isDebug) Debug.Log($"{searching} {_}/StartQuestEventChannel in {searchLocation}", this);
-                StartQuestEventChannel = Resources.Load<StringEventChannelSO>($"{_}/StartQuestEventChannel");
-                if (StartQuestEventChannel == null)
-                {
-                    errorMessages.Add($"{_}/StartQuestEventChannel is not {searchLocation} {readInstructions}");
-                    validityCheck = false;
-                    invalidObjects.Add(StartQuestEventChannel);
-                }
-            }
-
 
             if (requirementCheck == null)
             {

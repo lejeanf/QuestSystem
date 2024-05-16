@@ -10,16 +10,12 @@ namespace jeanf.questsystem
     [System.Serializable, NodeMenuItem("questSystem/QuestStep")]
     public class QuestStep : MonoBehaviour, IDebugBehaviour
     {
-
-        public GameObject PrefabToInstantiate;
         [field: Space(10)][field: ReadOnly][SerializeField] string stepId;
         public string StepId { get { return stepId; } }
 
         string questId;
         public string QuestId { get { return questId; } }
 
-        
-        private float questStepProgress = 0;
         
         [field: ReadOnly] [SerializeField] public QuestStepStatus stepStatus;
 
@@ -98,9 +94,9 @@ namespace jeanf.questsystem
             {
                 sendNextStepId?.Invoke(questStep.stepId);
             }
-
-            stepActive?.Invoke(stepId, stepStatus);
             stepCompleted?.Invoke(stepId);
+            stepActive?.Invoke(stepId, stepStatus);
+
 
             if (!isUsingIntroTimeline || !timeline) return;
             //if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");
