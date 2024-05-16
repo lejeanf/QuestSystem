@@ -258,7 +258,7 @@ namespace jeanf.questsystem
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Failed to load quest with id " + quest.questSO.id + ": " + e);
+                //Debug.LogError("Failed to load quest with id " + quest.questSO.id + ": " + e);
             }
 
             return quest;
