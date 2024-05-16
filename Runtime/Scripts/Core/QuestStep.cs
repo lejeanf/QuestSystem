@@ -95,13 +95,10 @@ namespace jeanf.questsystem
                 sendNextStepId?.Invoke(questStep.stepId);
             }
             stepCompleted?.Invoke(stepId);
-            stepActive?.Invoke(stepId, stepStatus);
-
-
-            if (!isUsingIntroTimeline || !timeline) return;
-            //if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: false");
-            //_timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
-
+            stepActive?.Invoke(stepId, stepStatus); 
+            
+            //stops the timeline in case it were playing
+            _timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
         }
 
 

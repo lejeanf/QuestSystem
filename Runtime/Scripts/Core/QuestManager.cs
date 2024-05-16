@@ -169,13 +169,6 @@ namespace jeanf.questsystem
             GameEventsManager.instance.scenarioEvents.ScenarioUnlocked(quest.questSO.unlockedScenario);
         }
 
-        //private void QuestStepStateChange(string id, int stepIndex, QuestStepState questStepState)
-        //{
-        //    Quest quest = GetQuestById(id);
-        //    quest.StoreQuestStepState(questStepState, stepIndex);
-        //    ChangeQuestState(id, quest.state);
-        //}
-
         private Dictionary<string, Quest> CreateQuestMap()
         {
             // loads all QuestInfoSO Scriptable Objects under the Assets/Resources/Quests folder
@@ -240,25 +233,28 @@ namespace jeanf.questsystem
 
         private Quest LoadQuest(QuestSO questSO)
         {
-            Quest quest = null;
+            Debug.Log($"attempting to load quest with id: [{questSO.id}]");
+            var quest = new Quest(questSO);
             try
             {
                 // load quest from saved data
                 if (PlayerPrefs.HasKey(questSO.id) && loadSavedQuestState)
                 {
-                    string serializedData = PlayerPrefs.GetString(questSO.id);
-                    QuestData questData = JsonUtility.FromJson<QuestData>(serializedData);
+                    var serializedData = PlayerPrefs.GetString(questSO.id);
+                    var questData = JsonUtility.FromJson<QuestData>(serializedData);
                     quest = new Quest(questSO, questData.state, questData.questStepIndex, questData.questStepStates); 
+                    Debug.Log($"loaded previously saved quest with id: [{quest.questSO.id}]");
                 }
                 // otherwise, initialize a new quest
                 else
                 {
                     quest = new Quest(questSO);
+                    Debug.Log($"loaded a fresh instance of quest with id: [{quest.questSO.id}]");
                 }
             }
             catch (System.Exception e)
             {
-                //Debug.LogError("Failed to load quest with id " + quest.questSO.id + ": " + e);
+                Debug.LogError($"Failed to load quest with id: [{quest.questSO.id}] - exception: {e}");
             }
 
             return quest;
