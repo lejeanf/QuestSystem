@@ -1,13 +1,9 @@
 using jeanf.EventSystem;
-using jeanf.propertyDrawer ;
-using jeanf.tooltip;
+using jeanf.propertyDrawer;
 using UnityEngine;
 using UnityEngine.Playables;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using GraphProcessor;
-using NodeGraphProcessor.Examples;
 
 namespace jeanf.questsystem
 {
