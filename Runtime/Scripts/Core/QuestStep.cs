@@ -78,22 +78,27 @@ namespace jeanf.questsystem
 
         protected void FinishQuestStep()
         {
+            if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Changing status to completed", this);
             stepStatus = QuestStepStatus.Completed;
   
             if (sendQuestStepTooltip != null)
             {
+                if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending tooltip", this);
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
             }
 ;
 
             foreach(QuestStep questStep in questStepsToTrigger)
             {
+                if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
                 sendNextStepId?.Invoke(questStep.stepId);
             }
+            if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepCompleted Event (delegate) with argument: {stepId}", this);
             stepCompleted?.Invoke(stepId);
+            if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepActive Event (delegate) with arguments: {stepId}, {stepStatus} ", this);
             stepActive?.Invoke(stepId, stepStatus);
 
-            if (isDebug) Debug.Log($"Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);
+            if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);
             Destroy(this.gameObject);
         }
 
