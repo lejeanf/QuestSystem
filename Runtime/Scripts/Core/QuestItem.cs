@@ -78,7 +78,7 @@ namespace jeanf.questsystem
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
             QuestStep.sendNextStepId += InstantiateQuestStep;
-            QuestStep.stepCompleted += DestroyQuestStep;
+            //QuestStep.stepCompleted += DestroyQuestStep;
             QuestStep.stepActive += UpdateStepStatus;
 
         }
@@ -90,7 +90,7 @@ namespace jeanf.questsystem
             GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
             QuestStep.sendNextStepId -= InstantiateQuestStep;
-            QuestStep.stepCompleted -= DestroyQuestStep;
+            //QuestStep.stepCompleted -= DestroyQuestStep;
             QuestStep.stepActive -= UpdateStepStatus;
 
         }
