@@ -110,7 +110,7 @@ namespace jeanf.questsystem
         {
             if (activeSteps.ContainsKey(id))
             {
-                Destroy(activeSteps[id].gameObject);
+                //Destroy(activeSteps[id].gameObject);
             }
         }
 

@@ -94,7 +94,7 @@ namespace jeanf.questsystem
             stepActive?.Invoke(stepId, stepStatus);
 
             if (isDebug) Debug.Log($"Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);
-            Destroy(this);
+            Destroy(this.gameObject);
         }
 
 
