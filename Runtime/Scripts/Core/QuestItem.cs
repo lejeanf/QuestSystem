@@ -105,10 +105,9 @@ namespace jeanf.questsystem
                 return;
             }
 
-            if (stepMap.ContainsKey(id))
-            {
-                activeSteps.Add(id,Instantiate(stepMap[id], this.transform, true));
-            }
+            if (!stepMap.ContainsKey(id)) return;
+            
+            if(!activeSteps.ContainsKey(id)) activeSteps.Add(id,Instantiate(stepMap[id], this.transform, true));
         }
 
         public void DestroyQuestStep(string id)
