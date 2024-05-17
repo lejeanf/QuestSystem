@@ -97,8 +97,9 @@ namespace jeanf.questsystem
             stepCompleted?.Invoke(stepId);
             stepActive?.Invoke(stepId, stepStatus); 
             
-            //stops the timeline in case it were playing
-            _timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
+            // stops the timeline in case it were playing
+            // this may cause issue of timing so disabled it to test.
+            // _timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
         }
 
 
