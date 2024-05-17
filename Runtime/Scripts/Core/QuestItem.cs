@@ -99,12 +99,8 @@ namespace jeanf.questsystem
         #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
         {
-            if (activeSteps.ContainsKey(id))
-            {
-                Debug.Log($"Step with id:[{id}] is already in the list of active steps");
-                return;
-            }
-
+            if (stepMap[id].stepStatus != QuestStepStatus.Inactive) return;
+            if (activeSteps.ContainsKey(id)) return;
             if (!stepMap.ContainsKey(id)) return;
             
             if(!activeSteps.ContainsKey(id)) activeSteps.Add(id,Instantiate(stepMap[id], this.transform, true));

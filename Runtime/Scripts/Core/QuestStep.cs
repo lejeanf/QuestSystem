@@ -84,22 +84,17 @@ namespace jeanf.questsystem
             {
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
             }
-
-            Debug.LogWarning("Implement prefab destruction");
-            Debug.LogWarning("Implement next trigger calls.");
-
-            
+;
 
             foreach(QuestStep questStep in questStepsToTrigger)
             {
                 sendNextStepId?.Invoke(questStep.stepId);
             }
             stepCompleted?.Invoke(stepId);
-            stepActive?.Invoke(stepId, stepStatus); 
-            
-            // stops the timeline in case it were playing
-            // this may cause issue of timing so disabled it to test.
-            // _timelineTriggerEventChannelSo.RaiseEvent(timeline, false);
+            stepActive?.Invoke(stepId, stepStatus);
+
+            if (isDebug) Debug.Log($"Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);
+            Destroy(this);
         }
 
 
