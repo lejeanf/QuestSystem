@@ -4,8 +4,6 @@ using jeanf.EventSystem;
 using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
-using Unity.VisualScripting.YamlDotNet.Core.Tokens;
-using UnityEngine.SceneManagement;
 using UnityEditor;
 
 
@@ -114,7 +112,7 @@ namespace jeanf.questsystem
         }
 
         public void DestroyQuestStep(string id)
-      {
+        {
             if (activeSteps.ContainsKey(id))
             {
                 Destroy(activeSteps[id].gameObject);
