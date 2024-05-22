@@ -26,6 +26,7 @@ namespace jeanf.questsystem
         private Dictionary<string, QuestStep> stepMap = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> activeSteps = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> completedSteps = new Dictionary<string, QuestStep>();
+        private List<QuestStep> rootSteps = new List<QuestStep>();
 
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
@@ -52,13 +53,11 @@ namespace jeanf.questsystem
         private void Awake()
         {
             questId = questSO.id;
-            for (int i = 0; i < questSO.questSteps.Length; i++)
+            for (int i = 0; i < questSO.rootSteps.Length; i++)
             {
-                if (!stepMap.ContainsKey(questSO.questSteps[i].StepId))
-                {
-                    Debug.Log($"id on awake {questSO.questSteps[i].StepId}, added to {this.name}'s dictionary", this);
-                    stepMap.Add(questSO.questSteps[i].StepId, questSO.questSteps[i]);
-                }
+                Debug.Log($"id on awake {questSO.rootSteps[i].StepId}, added to {this.name}'s dictionary", this);
+                AddStepToStepMap(questSO.rootSteps[i]);
+                rootSteps.Add(questSO.rootSteps[i]);
             }
         }
 
@@ -80,6 +79,7 @@ namespace jeanf.questsystem
             QuestStep.sendNextStepId += InstantiateQuestStep;
             //QuestStep.stepCompleted += DestroyQuestStep;
             QuestStep.stepActive += UpdateStepStatus;
+            QuestStep.childStep += AddStepToStepMap;
 
         }
 
@@ -92,10 +92,12 @@ namespace jeanf.questsystem
             QuestStep.sendNextStepId -= InstantiateQuestStep;
             //QuestStep.stepCompleted -= DestroyQuestStep;
             QuestStep.stepActive -= UpdateStepStatus;
+            QuestStep.childStep -= AddStepToStepMap;
+
 
         }
         #endregion
-       
+
         #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
         {
@@ -142,6 +144,14 @@ namespace jeanf.questsystem
             }
         }
 
+        private void AddStepToStepMap(QuestStep step)
+        {
+            if (!stepMap.ContainsKey(step.StepId))
+            {
+                stepMap.Add(step.StepId, step);
+            }
+            
+        }
         #region quest process
         private void Init(string id)
         {
@@ -157,12 +167,9 @@ namespace jeanf.questsystem
             requirementCheck.RaiseEvent(questId);
             UpdateState();
 
-            foreach (QuestStep step in stepMap.Values)
+            foreach (QuestStep step in rootSteps)
             {
-                if (step.isRootStep)
-                {
-                    InstantiateQuestStep(step.StepId);
-                }
+                InstantiateQuestStep(step.StepId);
             }
 
             LoadDependencies();

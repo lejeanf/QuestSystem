@@ -36,7 +36,8 @@ namespace jeanf.questsystem
         public static StepCompleted stepCompleted;
         public delegate void StepActive(string id, QuestStepStatus stepStatus);
         public static StepActive stepActive;
-        
+        public delegate void ChildStep(QuestStep step);
+        public static ChildStep childStep;
         
         [Header("Quest Tooltip")]
         [SerializeField] private QuestTooltipSO questTooltipSO;
@@ -62,7 +63,7 @@ namespace jeanf.questsystem
             stepStatus = QuestStepStatus.Active;
             stepActive?.Invoke(stepId, stepStatus);
 
-
+            
             if (sendQuestStepTooltip != null)
             {
                 DisplayActiveQuestStep();
@@ -71,6 +72,11 @@ namespace jeanf.questsystem
             {
                 if (isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
                 _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
+            }
+
+            foreach(QuestStep questStep in questStepsToTrigger)
+            {
+                childStep?.Invoke(questStep);
             }
         }
 

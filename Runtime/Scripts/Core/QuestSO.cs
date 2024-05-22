@@ -31,7 +31,7 @@ namespace jeanf.questsystem
         public List<string> ScenesToLoad = new List<string>();
         public List<int> roomsToUnlock = new List<int>();
 
-        [Header("Steps")] public QuestStep[] questSteps;
+        [Header("Steps")] public QuestStep[] rootSteps;
 
         [Header("Rewards")] public string unlockedScenario;
 

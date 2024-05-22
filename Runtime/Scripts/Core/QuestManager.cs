@@ -50,7 +50,7 @@ namespace jeanf.questsystem
         {
             GameEventsManager.instance.questEvents.onStartQuest += StartQuest;
             GameEventsManager.instance.questEvents.onFinishQuest += FinishQuest;
-
+            
             //GameEventsManager.instance.questEvents.onQuestStepStateChange += QuestStepStateChange;
 
             GameEventsManager.instance.playerEvents.onPlayerLevelChange += PlayerLevelChange;
