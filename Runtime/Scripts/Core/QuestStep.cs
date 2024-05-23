@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using System.Collections.Generic;
 using GraphProcessor;
+using jeanf.validationTools;
 
 namespace jeanf.questsystem
 {
@@ -31,7 +32,7 @@ namespace jeanf.questsystem
         public List<QuestStep> questStepsToTrigger = new List<QuestStep>();
         public delegate void SendNextStepId(string id);
         public static SendNextStepId sendNextStepId;
-        public bool isRootStep;
+
         public delegate void StepCompleted(string id);
         public static StepCompleted stepCompleted;
         public delegate void StepActive(string id, QuestStepStatus stepStatus);
@@ -128,7 +129,9 @@ namespace jeanf.questsystem
             stepId = $"{System.Guid.NewGuid()}";
             UnityEditor.EditorUtility.SetDirty(this);
         }
+
         #endif
+
 
         public bool isDebug { get; set; }
 

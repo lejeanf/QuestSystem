@@ -20,7 +20,7 @@ namespace jeanf.questsystem
         [Header("General")] public string displayName;
         
         [Header("Custom messages init/finish")] 
-        [SerializeField] public StringEventChannelSO messageChannel; //change to delegate?
+        [SerializeField] public StringEventChannelSO messageChannel; 
         [SerializeField] public bool sendMessageOnInitialization = false;
         [SerializeField] public string messageToSendOnInitialization = "";
         [SerializeField] public bool sendMessageOnFinish = false;
