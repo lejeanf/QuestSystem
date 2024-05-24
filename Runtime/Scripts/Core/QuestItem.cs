@@ -148,7 +148,10 @@ namespace jeanf.questsystem
             {
                 stepMap.Add(step.StepId, step);
             }
-            
+            if (completedSteps.ContainsKey(step.StepId))
+            {
+                completedSteps.Remove(step.StepId);
+            }
         }
         #region quest process
         private void Init(string id)
