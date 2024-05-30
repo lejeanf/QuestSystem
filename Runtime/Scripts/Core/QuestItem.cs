@@ -5,6 +5,7 @@ using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
 using UnityEditor;
+using System.Linq;
 
 
 namespace jeanf.questsystem
@@ -21,11 +22,12 @@ namespace jeanf.questsystem
         [SerializeField] private bool _isDebug = false;
         [SerializeField] private bool _startQuestOnEnable = false;
 
-        [Tooltip("Visual feedback for the quest state")] [Header("Quest")] [SerializeField]
-        private QuestSO questSO;
+        [Tooltip("Visual feedback for the quest state")] [Header("Quest")] 
+        [SerializeField] [Validation("A reference to a questSO is required")] private QuestSO questSO;
         private Dictionary<string, QuestStep> stepMap = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> activeSteps = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> completedSteps = new Dictionary<string, QuestStep>();
+        private List<QuestStep> rootSteps = new List<QuestStep>();
 
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
@@ -45,20 +47,18 @@ namespace jeanf.questsystem
 
         [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
         private StringEventChannelSO requirementCheck;
-        [SerializeField] StringEventChannelSO loadRequiredScenesEventChannel;
+        [SerializeField][Validation("A reference to the LoadRequiredScenesEventChannel SO is required")]  StringListEventChannelSO loadRequiredScenesEventChannel;
         [SerializeField] IntEventChannelSO unlockDoorsEventChannel;
 
         #region Awake/Enable/Disable
         private void Awake()
         {
             questId = questSO.id;
-            for (int i = 0; i < questSO.questSteps.Length; i++)
+            for (int i = 0; i < questSO.rootSteps.Length; i++)
             {
-                if (!stepMap.ContainsKey(questSO.questSteps[i].StepId))
-                {
-                    Debug.Log($"id on awake {questSO.questSteps[i].StepId}, added to {this.name}'s dictionary", this);
-                    stepMap.Add(questSO.questSteps[i].StepId, questSO.questSteps[i]);
-                }
+                Debug.Log($"id on awake {questSO.rootSteps[i].StepId}, added to {this.name}'s dictionary", this);
+                AddStepToStepMap(questSO.rootSteps[i]);
+                rootSteps.Add(questSO.rootSteps[i]);
             }
         }
 
@@ -80,6 +80,7 @@ namespace jeanf.questsystem
             QuestStep.sendNextStepId += InstantiateQuestStep;
             //QuestStep.stepCompleted += DestroyQuestStep;
             QuestStep.stepActive += UpdateStepStatus;
+            QuestStep.childStep += AddStepToStepMap;
 
         }
 
@@ -92,10 +93,12 @@ namespace jeanf.questsystem
             QuestStep.sendNextStepId -= InstantiateQuestStep;
             //QuestStep.stepCompleted -= DestroyQuestStep;
             QuestStep.stepActive -= UpdateStepStatus;
+            QuestStep.childStep -= AddStepToStepMap;
+
 
         }
         #endregion
-       
+
         #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
         {
@@ -109,10 +112,7 @@ namespace jeanf.questsystem
 
         private void LoadDependencies()
         {
-            foreach (string SceneToLoad in questSO.ScenesToLoad)
-            {
-                loadRequiredScenesEventChannel.RaiseEvent(SceneToLoad);
-            }
+            loadRequiredScenesEventChannel.RaiseEvent(questSO.ScenesToLoad);
 
             foreach (int roomToUnlock in questSO.roomsToUnlock)
             {
@@ -142,6 +142,17 @@ namespace jeanf.questsystem
             }
         }
 
+        private void AddStepToStepMap(QuestStep step)
+        {
+            if (!stepMap.ContainsKey(step.StepId))
+            {
+                stepMap.Add(step.StepId, step);
+            }
+            if (completedSteps.ContainsKey(step.StepId))
+            {
+                completedSteps.Remove(step.StepId);
+            }
+        }
         #region quest process
         private void Init(string id)
         {
@@ -157,12 +168,9 @@ namespace jeanf.questsystem
             requirementCheck.RaiseEvent(questId);
             UpdateState();
 
-            foreach (QuestStep step in stepMap.Values)
+            foreach (QuestStep step in rootSteps)
             {
-                if (step.isRootStep)
-                {
-                    InstantiateQuestStep(step.StepId);
-                }
+                InstantiateQuestStep(step.StepId);
             }
 
             LoadDependencies();
@@ -229,10 +237,10 @@ namespace jeanf.questsystem
         {
             ValidityCheck();
         }
-        #endif
+
 
         
-        #if UNITY_EDITOR
+
         public void LogActiveSteps()
         {
             Debug.Log($"There is {activeSteps.Count} active steps at the moment.");
@@ -260,14 +268,22 @@ namespace jeanf.questsystem
             {
                 if (isDebug) Debug.Log($"{searching} {_}/QuestInitialCheck in {searchLocation} ", this);
                 QuestInitialCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestInitialCheck");
-                if (QuestProgress == null)
+                if (QuestInitialCheck == null)
                 {
                     errorMessages.Add($"{_}/QuestInitialCheck is not in {searchLocation} {readInstructions}");
                     validityCheck = false;
-                    invalidObjects.Add(QuestProgress);
+                    invalidObjects.Add(QuestInitialCheck);
                 }
 
             }
+            
+            if (questSO == null)
+            {
+                if (isDebug) Debug.Log($"There is no questSO in the questItem");
+                validityCheck = false;
+                invalidObjects.Add(questSO);
+            }
+
 
             if (QuestProgress == null)
             {
@@ -278,6 +294,19 @@ namespace jeanf.questsystem
                     errorMessages.Add($"{_}/QuestsProgressChannel is not in {searchLocation} {readInstructions}");
                     validityCheck = false;
                     invalidObjects.Add(QuestProgress);
+                }
+
+            }
+
+            if (loadRequiredScenesEventChannel == null)
+            {
+                if (isDebug) Debug.Log($"{searching} {_}/loadRequiredScenesEventChannel in {searchLocation} ", this);
+                loadRequiredScenesEventChannel = Resources.Load<StringListEventChannelSO>($"{_}/LoadRequiredScenesEventChannel");
+                if (loadRequiredScenesEventChannel == null)
+                {
+                    errorMessages.Add($"{_}/loadRequiredScenesEventChannel is not in {searchLocation} {readInstructions}");
+                    validityCheck = false;
+                    invalidObjects.Add(loadRequiredScenesEventChannel);
                 }
 
             }

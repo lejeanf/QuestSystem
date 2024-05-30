@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using System.Collections.Generic;
 using GraphProcessor;
+using jeanf.validationTools;
 
 namespace jeanf.questsystem
 {
@@ -31,12 +32,13 @@ namespace jeanf.questsystem
         public List<QuestStep> questStepsToTrigger = new List<QuestStep>();
         public delegate void SendNextStepId(string id);
         public static SendNextStepId sendNextStepId;
-        public bool isRootStep;
+
         public delegate void StepCompleted(string id);
         public static StepCompleted stepCompleted;
         public delegate void StepActive(string id, QuestStepStatus stepStatus);
         public static StepActive stepActive;
-        
+        public delegate void ChildStep(QuestStep step);
+        public static ChildStep childStep;
         
         [Header("Quest Tooltip")]
         [SerializeField] private QuestTooltipSO questTooltipSO;
@@ -62,7 +64,7 @@ namespace jeanf.questsystem
             stepStatus = QuestStepStatus.Active;
             stepActive?.Invoke(stepId, stepStatus);
 
-
+            
             if (sendQuestStepTooltip != null)
             {
                 DisplayActiveQuestStep();
@@ -71,6 +73,11 @@ namespace jeanf.questsystem
             {
                 if (isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
                 _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
+            }
+
+            foreach(QuestStep questStep in questStepsToTrigger)
+            {
+                childStep?.Invoke(questStep);
             }
         }
 
@@ -122,7 +129,9 @@ namespace jeanf.questsystem
             stepId = $"{System.Guid.NewGuid()}";
             UnityEditor.EditorUtility.SetDirty(this);
         }
+
         #endif
+
 
         public bool isDebug { get; set; }
 

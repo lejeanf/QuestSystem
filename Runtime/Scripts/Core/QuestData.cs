@@ -12,9 +12,9 @@ namespace jeanf.questsystem
         // old constructor (linear structure)
         public QuestState state;
         public int questStepIndex;
-        public QuestStepState[] questStepStates;
+        public List<QuestStepState> questStepStates;
 
-        public QuestData(QuestState state, int questStepIndex, QuestStepState[] questStepStates)
+        public QuestData(QuestState state, int questStepIndex, List<QuestStepState> questStepStates)
         {
             this.state = state;
             this.questStepIndex = questStepIndex;
