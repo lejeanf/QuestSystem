@@ -99,9 +99,9 @@ namespace jeanf.questsystem
         #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
         {
+            if (!stepMap.ContainsKey(id)) return;
             if (stepMap[id].stepStatus != QuestStepStatus.Inactive) return;
             if (activeSteps.ContainsKey(id)) return;
-            if (!stepMap.ContainsKey(id)) return;
 
             Instantiate(stepMap[id], this.transform, true);
             //if(!activeSteps.ContainsKey(id)) activeSteps.Add(id,Instantiate(stepMap[id], this.transform, true));
