@@ -58,7 +58,8 @@ namespace jeanf.questsystem
         public void InitializeQuestStep()
         {
             // failsafe to avoid lauching the same step more than once at a time.
-            if (stepStatus == QuestStepStatus.Active) return;
+            // if (stepStatus == QuestStepStatus.Active) return;
+            
             if(isDebug) Debug.Log($"Initializing questStep [{stepId}] with for quest with questId: [{questId}]");
 
             stepStatus = QuestStepStatus.Active;
