@@ -49,7 +49,7 @@ namespace jeanf.questsystem
 
 
 
-        private void OnEnable()
+        public void OnEnable()
         {
             InitializeQuestStep();
         }
