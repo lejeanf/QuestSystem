@@ -59,7 +59,7 @@ namespace jeanf.questsystem
         {
             // failsafe to avoid lauching the same step more than once at a time.
             if (stepStatus == QuestStepStatus.Active) return;
-            Debug.Log($"Initializing quest with questId: {questId}");
+            if(isDebug) Debug.Log($"Initializing questStep [{stepId}] with for quest with questId: [{questId}]");
 
             stepStatus = QuestStepStatus.Active;
             stepActive?.Invoke(stepId, stepStatus);
@@ -75,8 +75,10 @@ namespace jeanf.questsystem
                 _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
             }
 
+            if(isDebug) Debug.Log($"Step with id [{stepId}] has {questStepsToTrigger.Count} childSteps");
             foreach(QuestStep questStep in questStepsToTrigger)
             {
+                if (isDebug) Debug.Log($"sending childstep to initialization: {questStep.name}, stepId: [{questStep.stepId}]");
                 childStep?.Invoke(questStep);
             }
         }

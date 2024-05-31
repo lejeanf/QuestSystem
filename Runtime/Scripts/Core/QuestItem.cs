@@ -56,7 +56,7 @@ namespace jeanf.questsystem
             questId = questSO.id;
             for (int i = 0; i < questSO.rootSteps.Length; i++)
             {
-                Debug.Log($"id on awake {questSO.rootSteps[i].StepId}, added to {this.name}'s dictionary", this);
+                if(isDebug) Debug.Log($"id on awake {questSO.rootSteps[i].StepId}, added to {this.name}'s dictionary", this);
                 AddStepToStepMap(questSO.rootSteps[i]);
                 rootSteps.Add(questSO.rootSteps[i]);
             }
@@ -144,12 +144,15 @@ namespace jeanf.questsystem
 
         private void AddStepToStepMap(QuestStep step)
         {
+            if(isDebug) Debug.Log($"--- Received request to add step {step.name} with id: {step.StepId} to stepMap.");
             if (!stepMap.ContainsKey(step.StepId))
             {
+                if(isDebug) Debug.Log($"--- Step [{step.StepId}] not found in stepMap, adding it.");
                 stepMap.Add(step.StepId, step);
             }
             if (completedSteps.ContainsKey(step.StepId))
             {
+                if(isDebug) Debug.Log($"--- Step [{step.StepId}] already completed removing it from completeSteps so that we can go through it again.");
                 completedSteps.Remove(step.StepId);
             }
         }
@@ -161,7 +164,7 @@ namespace jeanf.questsystem
             completedSteps.Clear();
             completedSteps.TrimExcess();
 
-            Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
+            if(isDebug) Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
             if (!_startQuestOnEnable || id != questId) return;
             clearToStart = true;
             currentQuestState = QuestState.CAN_START;
