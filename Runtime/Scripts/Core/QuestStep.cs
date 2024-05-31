@@ -136,7 +136,8 @@ namespace jeanf.questsystem
         #endif
 
 
-        public bool isDebug { get; set; }
+        public bool isDebug { get => _isDebug; set => _isDebug = value; }
+        private bool _isDebug = true;
 
         public QuestStepStatus GetStatus()
         {
