@@ -18,3 +18,5 @@ Credits:
 - It is inspired by this <a href="https://github.com/shapedbyrainstudios/quest-system">this</a>.
 - I simply implemented this code in my package registry and tweaked it to my liking. Overtime I will add quite a lot of functionalities but for now I focus on making it work with my custom Event System.
 
+Contributors:
+[Code] Felix Cotes-Charlebois <a href="https://github.com/Percevent13">
