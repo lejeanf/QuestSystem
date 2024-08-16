@@ -52,6 +52,7 @@ namespace jeanf.questsystem
         public void OnEnable()
         {
             InitializeQuestStep();
+            Debug.Log("Played questStep's enable");
         }
 
 
