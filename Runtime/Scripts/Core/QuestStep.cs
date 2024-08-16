@@ -8,7 +8,7 @@ using jeanf.validationTools;
 
 namespace jeanf.questsystem
 {
-    [System.Serializable, NodeMenuItem("questSystem/QuestStep")]
+    [System.Serializable, NodeMenuItem("questSystem/QuestStep"), DefaultExecutionOrder(1)]
     public class QuestStep : MonoBehaviour, IDebugBehaviour
     {
         [field: Space(10)][field: ReadOnly][SerializeField] string stepId;
