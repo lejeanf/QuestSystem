@@ -6,6 +6,7 @@ using jeanf.propertyDrawer;
 using jeanf.validationTools;
 using UnityEditor;
 using System.Linq;
+using Object = UnityEngine.Object;
 
 
 namespace jeanf.questsystem
@@ -44,11 +45,14 @@ namespace jeanf.questsystem
         [Header("Listening on:")] 
         [SerializeField] [Validation("A reference to the QuestProgress SO is required")] private StringFloatEventChannelSO QuestProgress;
         [SerializeField] [Validation("A reference to the QuestInitialCheck SO is required")] private StringEventChannelSO QuestInitialCheck;
+        [SerializeField] private VoidEventChannelSO resetChannel;
 
         [Header("Broadcasting on:")] [SerializeField] [Validation("A reference to the QuestRequirementCheck SO is required")]
         private StringEventChannelSO requirementCheck;
         [SerializeField][Validation("A reference to the LoadRequiredScenesEventChannel SO is required")]  StringListEventChannelSO loadRequiredScenesEventChannel;
         [SerializeField] IntEventChannelSO unlockDoorsEventChannel;
+        
+        
 
         #region Awake/Enable/Disable
         private void Awake()
@@ -73,31 +77,35 @@ namespace jeanf.questsystem
 
         private void Subscribe()
         {
+            resetChannel.OnEventRaised += Reset;
             QuestInitialCheck.OnEventRaised += Init;
             QuestProgress.OnEventRaised += UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
             QuestStep.sendNextStepId += InstantiateQuestStep;
-            //QuestStep.stepCompleted += DestroyQuestStep;
             QuestStep.stepActive += UpdateStepStatus;
             QuestStep.childStep += AddStepToStepMap;
-
         }
 
         private void Unsubscribe()
         {
+            resetChannel.OnEventRaised -= Reset;
             QuestInitialCheck.OnEventRaised -= Init;
             QuestProgress.OnEventRaised -= UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
             QuestStep.sendNextStepId -= InstantiateQuestStep;
-            //QuestStep.stepCompleted -= DestroyQuestStep;
             QuestStep.stepActive -= UpdateStepStatus;
             QuestStep.childStep -= AddStepToStepMap;
 
 
         }
         #endregion
+
+        private void Reset()
+        {
+            Init(questId);
+        }
 
         #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
@@ -159,6 +167,14 @@ namespace jeanf.questsystem
         #region quest process
         private void Init(string id)
         {
+            if (transform.childCount > 0)
+            {
+                for (var i = transform.childCount - 1; i >= 0; i--)
+                {
+                    Destroy(transform.GetChild(i));
+                }
+            }
+
             activeSteps.Clear();
             activeSteps.TrimExcess();
             completedSteps.Clear();
