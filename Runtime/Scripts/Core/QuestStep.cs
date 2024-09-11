@@ -1,3 +1,4 @@
+using System;
 using jeanf.EventSystem;
 using jeanf.propertyDrawer;
 using UnityEngine;
@@ -5,6 +6,7 @@ using UnityEngine.Playables;
 using System.Collections.Generic;
 using GraphProcessor;
 using jeanf.validationTools;
+using UnityEditor;
 
 namespace jeanf.questsystem
 {
@@ -45,13 +47,28 @@ namespace jeanf.questsystem
 
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
-
-
-
-
+        [SerializeField] private StringEventChannelSO stepValidationOverride;
+        
         public void OnEnable()
         {
+            Subscribe();
             InitializeQuestStep();
+        }
+
+        public void OnDisable() => Unsubscribe();
+
+        public void OnDestroy() => Unsubscribe();
+
+        private void Subscribe()
+        {
+            QuestItem.ValidateStepEvent += ValidateCurrentStep;
+            if(stepValidationOverride) stepValidationOverride.OnEventRaised += ValidateCurrentStep;
+        }
+
+        private void Unsubscribe()
+        {
+            QuestItem.ValidateStepEvent -= ValidateCurrentStep;
+            if(stepValidationOverride) stepValidationOverride.OnEventRaised -= ValidateCurrentStep;
         }
 
 
@@ -84,9 +101,14 @@ namespace jeanf.questsystem
             }
         }
 
+        public void ValidateCurrentStep(string stepId)
+        {
+            if(stepId != this.stepId)return;
+            FinishQuestStep();
+        }
 
 
-        protected void FinishQuestStep()
+        public void FinishQuestStep()
         {
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Changing status to completed", this);
             stepStatus = QuestStepStatus.Completed;

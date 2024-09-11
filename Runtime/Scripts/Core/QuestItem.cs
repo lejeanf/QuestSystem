@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using jeanf.EventSystem;
 using UnityEngine;
 using jeanf.propertyDrawer;
 using jeanf.validationTools;
 using UnityEditor;
-using System.Linq;
-using Object = UnityEngine.Object;
-
 
 namespace jeanf.questsystem
 {
@@ -29,6 +27,10 @@ namespace jeanf.questsystem
         private Dictionary<string, QuestStep> activeSteps = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> completedSteps = new Dictionary<string, QuestStep>();
         private List<QuestStep> rootSteps = new List<QuestStep>();
+
+        public delegate void ValidateStep(string stepId);
+
+        public static ValidateStep ValidateStepEvent;
 
 
         [ReadOnly] [Range(0, 1)] [SerializeField]
@@ -249,6 +251,18 @@ namespace jeanf.questsystem
         }
         #endregion
 
+        public void ValidateCurrentlyActiveSteps()
+        {
+            var currentlyActiveSteps = activeSteps.Keys;
+
+            for (var i = 0; i < currentlyActiveSteps.Count; i++)
+            {
+                var activeStep = activeSteps.ElementAt(i);
+                var stepKey = activeStep.Key;
+                if(activeSteps.ContainsKey(stepKey)) ValidateStepEvent.Invoke(stepKey);
+            }
+        }
+
         #region validation tools
 
         #if UNITY_EDITOR
@@ -354,20 +368,4 @@ namespace jeanf.questsystem
         }
         #endregion
     }
-    
-    
-    #if UNITY_EDITOR
-    [CustomEditor(typeof(QuestItem))]
-    public class BoolEventOnClickEditor : Editor {
-        override public void  OnInspectorGUI () {
-            DrawDefaultInspector();
-            GUILayout.Space(10);
-            var eventToSend = (QuestItem) target;
-            if(GUILayout.Button("Log active steps", GUILayout.Height(30))) {
-                eventToSend.LogActiveSteps(); // how do i call this?
-            }
-            GUILayout.Space(10);
-        }
-    }
-    #endif
 }

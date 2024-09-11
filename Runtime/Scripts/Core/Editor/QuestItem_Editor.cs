@@ -4,22 +4,22 @@ using UnityEngine;
 
 namespace jeanf.questsystem
 {
-    [CustomEditor(typeof(QuestStep), true)]
-    public class QuestStep_Editor : Editor
+    [CustomEditor(typeof(QuestItem), true)]
+    public class QuestItem_Editor : Editor
     {
         public override void OnInspectorGUI()
         {
             GUILayout.Space(10);
-            var eventToSend = (QuestStep)target;
+            var eventToSend = (QuestItem)target;
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Regenerate questStep id", GUILayout.Height(20)))
-            {
-                eventToSend.GenerateId(); // how do i call this?
+            if(GUILayout.Button("Log active steps", GUILayout.Height(20))) {
+                eventToSend.LogActiveSteps(); // how do i call this?
             }
             var originalColor = GUI.backgroundColor;
             GUI.backgroundColor = Color.green;
-            if(GUILayout.Button("Validate step", GUILayout.Height(20))) {
-                eventToSend.FinishQuestStep(); // how do i call this?
+            if (GUILayout.Button("Validate Currently Active Steps", GUILayout.Height(20)))
+            {
+                eventToSend.ValidateCurrentlyActiveSteps(); // how do i call this?
             }
             GUI.backgroundColor = originalColor;
             GUILayout.EndHorizontal();
