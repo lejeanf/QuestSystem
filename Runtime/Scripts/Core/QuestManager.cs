@@ -11,6 +11,8 @@ namespace jeanf.questsystem
 {
     public class QuestManager : MonoBehaviour, IDebugBehaviour, IValidatable
     {
+        #region variables
+        #region interface variables
         public bool isDebug
         {
             get => _isDebug;
@@ -19,23 +21,26 @@ namespace jeanf.questsystem
         public bool IsValid { get; private set; }
 
         [SerializeField] private bool _isDebug = false;
+        #endregion
 
-        [FormerlySerializedAs("loadQuestState")] [Header("Config")] [SerializeField]
-        private bool loadSavedQuestState = true;
-
+        #region event channels
         [Header("Broadcasting on:")]
         [SerializeField] [Validation("A reference to the questStatusUpdateChannel is required.")] private StringEventChannelSO questStatusUpdateChannel;
         [SerializeField] [Validation("A reference to the questProgress is required.")] private StringFloatEventChannelSO questProgress;
         [SerializeField] [Validation("A reference to the questInitialCheck channel is required.")] private StringEventChannelSO QuestInitialCheck;
-
         [Header("Listening on:")] [SerializeField] [Validation("A reference to the questStatusUpdateRequested is required.")] private StringEventChannelSO questStatusUpdateRequested;
+        #endregion
 
+        #region other variables
+        [FormerlySerializedAs("loadQuestState")] [Header("Config")] [SerializeField]
+        private bool loadSavedQuestState = true;
         private Dictionary<string, Quest> questMap;
-
-
-        // quest start requirements
         private int currentPlayerLevel;
+        #endregion
+        #endregion
 
+        #region Methods
+        #region Standard Unity Methods
         private void Awake()
         {
             questMap = CreateQuestMap();
@@ -45,25 +50,16 @@ namespace jeanf.questsystem
                 CheckIfQuestIsAlreadyLoaded(quest.Key);
             }
         }
-
         private void OnEnable()
         {
             GameEventsManager.instance.questEvents.onStartQuest += StartQuest;
-            GameEventsManager.instance.questEvents.onFinishQuest += FinishQuest;
-            
+            GameEventsManager.instance.questEvents.onFinishQuest += FinishQuest;       
             //GameEventsManager.instance.questEvents.onQuestStepStateChange += QuestStepStateChange;
-
             GameEventsManager.instance.playerEvents.onPlayerLevelChange += PlayerLevelChange;
-
             questStatusUpdateRequested.OnEventRaised += ctx => CheckRequirementsMet(questMap[ctx]);
-
-
         }
-
-
         private void OnDisable() => Unsubscribe();
         private void OnDestroy() => Unsubscribe();
-
         private void Unsubscribe()
         {
             GameEventsManager.instance.questEvents.onStartQuest -= StartQuest;
@@ -74,7 +70,6 @@ namespace jeanf.questsystem
             GameEventsManager.instance.playerEvents.onPlayerLevelChange -= PlayerLevelChange;
 
         }
-
         private void Start()
         {
             foreach (Quest quest in questMap.Values)
@@ -83,44 +78,6 @@ namespace jeanf.questsystem
                 GameEventsManager.instance.questEvents.QuestStateChange(quest);
             }
         }
-
-
-        private void CheckIfQuestIsAlreadyLoaded(string id)
-        {
-            QuestInitialCheck.RaiseEvent(id);
-        }
-
-        private void ChangeQuestState(string id, QuestState state)
-        {
-            Quest quest = GetQuestById(id);
-            quest.state = state;
-            GameEventsManager.instance.questEvents.QuestStateChange(quest);
-        }
-
-        private void PlayerLevelChange(int level)
-        {
-            currentPlayerLevel = level;
-        }
-
-        private bool CheckRequirementsMet(Quest quest)
-        {
-            // check player level requirements
-            var meetsRequirements = !(currentPlayerLevel < quest.questSO.levelRequirement);
-
-            // check quest prerequisites for completion
-            foreach (QuestSO prerequisiteQuestInfo in quest.questSO.questPrerequisites)
-            {
-                if (GetQuestById(prerequisiteQuestInfo.id).state != QuestState.FINISHED)
-                {
-                    meetsRequirements = false;
-                }
-            }
-            
-            if(isDebug) Debug.Log($"checking requirements for quest: {quest.questSO.name}, [{quest.questSO.id}], meetsRequirements: {meetsRequirements}");
-
-            return meetsRequirements;
-        }
-
         private void Update()
         {
             // loop through ALL quests
@@ -133,42 +90,16 @@ namespace jeanf.questsystem
                 }
             }
         }
-
-        private void StartQuest(string id)
+        private void OnApplicationQuit()
         {
-            Quest quest = GetQuestById(id);
-            ChangeQuestState(quest.questSO.id, QuestState.IN_PROGRESS);
-            SaveQuest(quest);
-            if (!quest.sendMessageOnInitialization) return;
-            quest.messageChannel.RaiseEvent(quest.messageToSendOnInit);
-            if(isDebug) Debug.Log($"quest id:{id}  started, a message was attatched to the initialization: {quest.messageToSendOnInit}");
+            foreach (Quest quest in questMap.Values)
+            {
+                SaveQuest(quest);
+            }
         }
+        #endregion
 
-        private void UpdateProgress(Quest quest)
-        {
-            var progress = 0;
-            if (quest.questSO.id == null) Debug.Log("C'est null");;
-            if (isDebug) Debug.Log($"[{quest.questSO.id}] progress: {progress * 100}%", this);
-            questProgress.RaiseEvent(quest.questSO.id, progress);
-        }
-
-        private void FinishQuest(string id)
-        {
-            Quest quest = GetQuestById(id);
-            UpdateProgress(quest);
-            ClaimRewards(quest);
-            ChangeQuestState(quest.questSO.id, QuestState.FINISHED);
-            questStatusUpdateChannel.RaiseEvent(quest.questSO.id);
-            questProgress.RaiseEvent(quest.questSO.id, 1);
-            SaveQuest(quest);
-            if (!quest.sendMessageOnFinish) return;
-        }
-
-        private void ClaimRewards(Quest quest)
-        {
-            GameEventsManager.instance.scenarioEvents.ScenarioUnlocked(quest.questSO.unlockedScenario);
-        }
-
+        #region Quest Checks and getters
         private Dictionary<string, Quest> CreateQuestMap()
         {
             // loads all QuestInfoSO Scriptable Objects under the Assets/Resources/Quests folder
@@ -186,12 +117,14 @@ namespace jeanf.questsystem
                 {
                     questMap.Add(id, LoadQuest(questSO));
                 }
-                if(isDebug) Debug.Log($"Adding {questSO.name} to the questmap, its id is: {questSO.id}");
+                if (isDebug) Debug.Log($"Adding {questSO.name} to the questmap, its id is: {questSO.id}");
             }
-
             return questMap;
         }
-
+        private void CheckIfQuestIsAlreadyLoaded(string id)
+        {
+            QuestInitialCheck.RaiseEvent(id);
+        }
         public Quest GetQuestById(string id)
         {
             Quest quest = questMap[id];
@@ -202,15 +135,75 @@ namespace jeanf.questsystem
 
             return quest;
         }
-
-        private void OnApplicationQuit()
+        private bool CheckRequirementsMet(Quest quest)
         {
-            foreach (Quest quest in questMap.Values)
+            // check player level requirements
+            var meetsRequirements = !(currentPlayerLevel < quest.questSO.levelRequirement);
+
+            // check quest prerequisites for completion
+            foreach (QuestSO prerequisiteQuestInfo in quest.questSO.questPrerequisites)
             {
-                SaveQuest(quest);
+                if (GetQuestById(prerequisiteQuestInfo.id).state != QuestState.FINISHED)
+                {
+                    meetsRequirements = false;
+                }
             }
+
+            if (isDebug) Debug.Log($"checking requirements for quest: {quest.questSO.name}, [{quest.questSO.id}], meetsRequirements: {meetsRequirements}");
+
+            return meetsRequirements;
+        }
+        private void ChangeQuestState(string id, QuestState state)
+        {
+            Quest quest = GetQuestById(id);
+            quest.state = state;
+            GameEventsManager.instance.questEvents.QuestStateChange(quest);
+        }
+        #endregion
+
+        #region main process
+        private void StartQuest(string id)
+        {
+            Quest quest = GetQuestById(id);
+            ChangeQuestState(quest.questSO.id, QuestState.IN_PROGRESS);
+            SaveQuest(quest);
+            if (!quest.sendMessageOnInitialization) return;
+            quest.messageChannel.RaiseEvent(quest.messageToSendOnInit);
+            if(isDebug) Debug.Log($"quest id:{id}  started, a message was attatched to the initialization: {quest.messageToSendOnInit}");
+        }
+        private void UpdateProgress(Quest quest)
+        {
+            var progress = 0;
+            if (quest.questSO.id == null) Debug.Log("C'est null");;
+            if (isDebug) Debug.Log($"[{quest.questSO.id}] progress: {progress * 100}%", this);
+            questProgress.RaiseEvent(quest.questSO.id, progress);
+        }
+        private void FinishQuest(string id)
+        {
+            Quest quest = GetQuestById(id);
+            UpdateProgress(quest);
+            ClaimRewards(quest);
+            ChangeQuestState(quest.questSO.id, QuestState.FINISHED);
+            questStatusUpdateChannel.RaiseEvent(quest.questSO.id);
+            questProgress.RaiseEvent(quest.questSO.id, 1);
+            SaveQuest(quest);
+            if (!quest.sendMessageOnFinish) return;
+        }
+        #endregion
+
+        #region rewards and progress
+        private void ClaimRewards(Quest quest)
+        {
+            GameEventsManager.instance.scenarioEvents.ScenarioUnlocked(quest.questSO.unlockedScenario);
         }
 
+        private void PlayerLevelChange(int level)
+        {
+            currentPlayerLevel = level;
+        }
+        #endregion
+
+        #region saving and loading
         private void SaveQuest(Quest quest)
         {
             try
@@ -230,7 +223,6 @@ namespace jeanf.questsystem
                 Debug.LogError("Failed to save quest with id " + quest.questSO.id + ": " + e);
             }
         }
-
         private Quest LoadQuest(QuestSO questSO)
         {
             Debug.Log($"attempting to load quest with id: [{questSO.id}]");
@@ -259,6 +251,9 @@ namespace jeanf.questsystem
 
             return quest;
         }
+        #endregion
+
+        #region Validation Tools
         private void ValidityCheck()
         {
             const string searching = "attempting to find";
@@ -334,5 +329,7 @@ namespace jeanf.questsystem
             ValidityCheck();
             #endif
         }
+        #endregion
+        #endregion
     }
 }

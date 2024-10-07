@@ -11,6 +11,8 @@ namespace jeanf.questsystem
 {
     public class QuestItem : MonoBehaviour, IDebugBehaviour, IValidatable
     {
+
+        #region interface variables
         public bool isDebug
         {
             get => _isDebug;
@@ -20,28 +22,30 @@ namespace jeanf.questsystem
 
         [SerializeField] private bool _isDebug = false;
         [SerializeField] private bool _startQuestOnEnable = false;
+        #endregion
 
+        #region Step Dictionaries
         [Tooltip("Visual feedback for the quest state")] [Header("Quest")] 
         [SerializeField] [Validation("A reference to a questSO is required")] private QuestSO questSO;
         private Dictionary<string, QuestStep> stepMap = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> activeSteps = new Dictionary<string, QuestStep>();
         private Dictionary<string, QuestStep> completedSteps = new Dictionary<string, QuestStep>();
         private List<QuestStep> rootSteps = new List<QuestStep>();
-
-        public delegate void ValidateStep(string stepId);
-
-        public static ValidateStep ValidateStepEvent;
+        #endregion
 
 
-        [ReadOnly] [Range(0, 1)] [SerializeField]
-        private float progress = 0.0f;
-
+        #region main data
         [SerializeField] [ReadOnly]
         private bool clearToStart = false;
-
         private string questId;
         private QuestState currentQuestState;
+        [ReadOnly][Range(0, 1)][SerializeField]
+        private float progress = 0.0f;
+        #endregion
 
+        #region events
+        public delegate void ValidateStep(string stepId);
+        public static ValidateStep ValidateStepEvent;
         // these events are Located in Assets/Resources/Quests/Channels - it is searched for at Awake time.
         // if they do not exist simply right click in the hierarchy and find >InitializeQuestSystem<
         [Header("Listening on:")] 
@@ -53,10 +57,10 @@ namespace jeanf.questsystem
         private StringEventChannelSO requirementCheck;
         [SerializeField][Validation("A reference to the LoadRequiredScenesEventChannel SO is required")]  StringListEventChannelSO loadRequiredScenesEventChannel;
         [SerializeField] IntEventChannelSO unlockDoorsEventChannel;
-        
-        
+        #endregion
 
-        #region Awake/Enable/Disable
+
+        #region Standard Unity Methods
         private void Awake()
         {
             questId = questSO.id;
@@ -67,7 +71,10 @@ namespace jeanf.questsystem
                 rootSteps.Add(questSO.rootSteps[i]);
             }
         }
-
+        private void Reset()
+        {
+            Init(questId);
+        }
         private void OnEnable()
         {
             Subscribe();
@@ -76,7 +83,6 @@ namespace jeanf.questsystem
         }
         private void OnDisable() => Unsubscribe();
         private void OnDestroy() => Unsubscribe();
-
         private void Subscribe()
         {
             resetChannel.OnEventRaised += Reset;
@@ -88,7 +94,6 @@ namespace jeanf.questsystem
             QuestStep.stepActive += UpdateStepStatus;
             QuestStep.childStep += AddStepToStepMap;
         }
-
         private void Unsubscribe()
         {
             resetChannel.OnEventRaised -= Reset;
@@ -104,11 +109,6 @@ namespace jeanf.questsystem
         }
         #endregion
 
-        private void Reset()
-        {
-            Init(questId);
-        }
-
         #region Instantiations & Loading
         public void InstantiateQuestStep(string id)
         {
@@ -119,7 +119,6 @@ namespace jeanf.questsystem
             Instantiate(stepMap[id], this.transform, true);
             //if(!activeSteps.ContainsKey(id)) activeSteps.Add(id,Instantiate(stepMap[id], this.transform, true));
         }
-
         private void LoadDependencies()
         {
             loadRequiredScenesEventChannel.RaiseEvent(questSO.ScenesToLoad);
@@ -129,43 +128,22 @@ namespace jeanf.questsystem
                 unlockDoorsEventChannel.RaiseEvent(roomToUnlock);
             }
         }
-        #endregion
-
-        public void UpdateStepStatus(string id, QuestStepStatus status)
-        {
-            switch (status)
-            {
-                case QuestStepStatus.Completed when activeSteps.ContainsKey(id):
-                    // put step in completed list
-                    activeSteps.Remove(id);
-                    completedSteps.Add(id, stepMap[id]);
-                    break;
-                case QuestStepStatus.Active when !activeSteps.ContainsKey(id):
-                    // put step in active list
-                    activeSteps.Add(id, stepMap[id]);
-                    break;
-                case QuestStepStatus.Inactive:
-                    // do nothing
-                default:
-                    // do nothing
-                    return;
-            }
-        }
-
         private void AddStepToStepMap(QuestStep step)
         {
-            if(isDebug) Debug.Log($"--- Received request to add step {step.name} with id: {step.StepId} to stepMap.");
+            if (isDebug) Debug.Log($"--- Received request to add step {step.name} with id: {step.StepId} to stepMap.");
             if (!stepMap.ContainsKey(step.StepId))
             {
-                if(isDebug) Debug.Log($"--- Step [{step.StepId}] not found in stepMap, adding it.");
+                if (isDebug) Debug.Log($"--- Step [{step.StepId}] not found in stepMap, adding it.");
                 stepMap.Add(step.StepId, step);
             }
             if (completedSteps.ContainsKey(step.StepId))
             {
-                if(isDebug) Debug.Log($"--- Step [{step.StepId}] already completed removing it from completeSteps so that we can go through it again.");
+                if (isDebug) Debug.Log($"--- Step [{step.StepId}] already completed removing it from completeSteps so that we can go through it again.");
                 completedSteps.Remove(step.StepId);
             }
         }
+        #endregion
+
         #region quest process
         private void Init(string id)
         {
@@ -196,7 +174,26 @@ namespace jeanf.questsystem
 
             LoadDependencies();
         }
-
+        public void UpdateStepStatus(string id, QuestStepStatus status)
+        {
+            switch (status)
+            {
+                case QuestStepStatus.Completed when activeSteps.ContainsKey(id):
+                    // put step in completed list
+                    activeSteps.Remove(id);
+                    completedSteps.Add(id, stepMap[id]);
+                    break;
+                case QuestStepStatus.Active when !activeSteps.ContainsKey(id):
+                    // put step in active list
+                    activeSteps.Add(id, stepMap[id]);
+                    break;
+                case QuestStepStatus.Inactive:
+                // do nothing
+                default:
+                    // do nothing
+                    return;
+            }
+        }
         private void UpdateState()
         {
             if (isDebug) Debug.Log($"Updating State...");
@@ -232,14 +229,12 @@ namespace jeanf.questsystem
                     throw new ArgumentOutOfRangeException();
             }
         }
-
         private void UpdateProgress(string id, float progress)
         {
             if (id != questId) return;
             this.progress = progress;
             if (isDebug) Debug.Log($"questid [{id}] progress = {progress * 100}%");
         }
-
         private void QuestStateChange(Quest quest)
         {
             // only update the quest state if this point has the corresponding quest
@@ -251,6 +246,7 @@ namespace jeanf.questsystem
         }
         #endregion
 
+        #region Complete all Steps
         public void ValidateCurrentlyActiveSteps()
         {
             var currentlyActiveSteps = activeSteps.Keys;
@@ -262,18 +258,15 @@ namespace jeanf.questsystem
                 if(activeSteps.ContainsKey(stepKey)) ValidateStepEvent.Invoke(stepKey);
             }
         }
+        #endregion
 
         #region validation tools
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         public void OnValidate()
         {
             ValidityCheck();
         }
-
-
-        
-
         public void LogActiveSteps()
         {
             Debug.Log($"There is {activeSteps.Count} active steps at the moment.");
@@ -283,7 +276,6 @@ namespace jeanf.questsystem
             }
         }
         #endif
-
         private void ValidityCheck()
         {
             const string searching = "attempting to find";

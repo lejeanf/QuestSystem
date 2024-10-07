@@ -13,15 +13,17 @@ namespace jeanf.questsystem
     [System.Serializable, NodeMenuItem("questSystem/QuestStep"), DefaultExecutionOrder(1)]
     public class QuestStep : MonoBehaviour, IDebugBehaviour
     {
+        #region Ids and status
         [field: Space(10)][field: ReadOnly][SerializeField] string stepId;
         public string StepId { get { return stepId; } }
 
         string questId;
         public string QuestId { get { return questId; } }
+        [field: ReadOnly][SerializeField] public QuestStepStatus stepStatus;
+        #endregion
 
-        
-        [field: ReadOnly] [SerializeField] public QuestStepStatus stepStatus;
 
+        #region timeline 
         [Tooltip("This boolean has to be enabled if the quest step has an intro timeline.")]
         public bool isUsingIntroTimeline = false;
 
@@ -29,7 +31,9 @@ namespace jeanf.questsystem
         [SerializeField] private TimelineTriggerEventChannelSO _timelineTriggerEventChannelSo;
         [DrawIf("isUsingIntroTimeline", true, ComparisonType.Equals, DisablingType.DontDraw)] 
         public PlayableAsset timeline;
+        #endregion
 
+        #region step trigger and complestion
         [Header("Quest Step Progression events & Variables")]
         public List<QuestStep> questStepsToTrigger = new List<QuestStep>();
         public delegate void SendNextStepId(string id);
@@ -41,14 +45,18 @@ namespace jeanf.questsystem
         public static StepActive stepActive;
         public delegate void ChildStep(QuestStep step);
         public static ChildStep childStep;
-        
+        #endregion
+
+        #region events
         [Header("Quest Tooltip")]
         [SerializeField] private QuestTooltipSO questTooltipSO;
 
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
         [SerializeField] private StringEventChannelSO stepValidationOverride;
-        
+        #endregion
+
+        #region standard unity methods
         public void OnEnable()
         {
             Subscribe();
@@ -70,8 +78,9 @@ namespace jeanf.questsystem
             QuestItem.ValidateStepEvent -= ValidateCurrentStep;
             if(stepValidationOverride) stepValidationOverride.OnEventRaised -= ValidateCurrentStep;
         }
+        #endregion
 
-
+        #region step progress
         public void InitializeQuestStep()
         {
             // failsafe to avoid lauching the same step more than once at a time.
@@ -107,7 +116,6 @@ namespace jeanf.questsystem
             FinishQuestStep();
         }
 
-
         public void FinishQuestStep()
         {
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Changing status to completed", this);
@@ -118,7 +126,6 @@ namespace jeanf.questsystem
                 if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending tooltip", this);
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
             }
-;
 
             foreach(QuestStep questStep in questStepsToTrigger)
             {
@@ -133,8 +140,9 @@ namespace jeanf.questsystem
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);
             Destroy(this.gameObject);
         }
+        #endregion
 
-
+        #region tooltip
         protected void DisplayActiveQuestStep()
         {
             if (questTooltipSO != null)
@@ -142,8 +150,10 @@ namespace jeanf.questsystem
                 sendQuestStepTooltip.RaiseEvent(questTooltipSO.Tooltip);
             }
         }
+        #endregion
 
-        #if UNITY_EDITOR
+        #region validation
+#if UNITY_EDITOR
         private void OnValidate()
         {
             if (stepId == string.Empty || stepId == null) GenerateId();
@@ -155,16 +165,20 @@ namespace jeanf.questsystem
             UnityEditor.EditorUtility.SetDirty(this);
         }
 
-        #endif
+#endif
+        #endregion
 
-
+        #region debug
         public bool isDebug { get => _isDebug; set => _isDebug = value; }
         private bool _isDebug = true;
+        #endregion
 
+        #region Status
         public QuestStepStatus GetStatus()
         {
             return stepStatus;
         }
+        #endregion
     }
 
     public enum QuestStepStatus
