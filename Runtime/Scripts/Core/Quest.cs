@@ -47,37 +47,6 @@ namespace jeanf.questsystem
             this.questSO = questQuestSo;
             this.state = questState;
             this.questStepStates = questStepStates;
-
-            //if the quest step states and prefabs are different lengths,
-            //something has changed during development and the saved data is out of sync.
-            //if (this.questStepStates.Length != this.questSO.questSteps.Length)
-            //{
-            //    Debug.LogWarning("Quest Step Prefabs and Quest Step States are "
-            //                     + "of different lengths. This indicates something changed "
-            //                     + "with the QuestInfo and the saved data is now out of sync. "
-            //                     + "Reset your data - as this might cause issues. QuestId: " + this.questSO.id);
-            //}
         }
-
-
-
-        //public void StoreQuestStepState(QuestStepState questStepState, int stepIndex)
-        //{
-        //    if (stepIndex < questStepStates.Count)
-        //    {
-        //        questStepStates[stepIndex].state = questStepState.state;
-        //    }
-        //    else
-        //    {
-        //        Debug.LogWarning("Tried to access quest step data, but stepIndex was out of range: "
-        //                         + "Quest Id = " + questSO.id + ", Step Index = " + stepIndex);
-        //    }
-        //}
-
-        //public QuestData GetQuestData()
-        //{
-        //    return new QuestData(state, currentQuestStepIndex, questStepStates);
-        //}
-
     }
 }

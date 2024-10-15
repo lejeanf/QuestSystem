@@ -33,9 +33,10 @@ namespace jeanf.questsystem
         public PlayableAsset timeline;
         #endregion
 
-        #region step trigger and complestion
+        #region step trigger and completion
         [Header("Quest Step Progression events & Variables")]
         public List<QuestStep> questStepsToTrigger = new List<QuestStep>();
+        public List<QuestStep> prerequisiteSteps = new List<QuestStep>();
         public delegate void SendNextStepId(string id);
         public static SendNextStepId sendNextStepId;
 
@@ -100,6 +101,7 @@ namespace jeanf.questsystem
             {
                 if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
                 _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
+                
             }
 
             if(isDebug) Debug.Log($"Step with id [{stepId}] has {questStepsToTrigger.Count} childSteps");
@@ -127,14 +129,18 @@ namespace jeanf.questsystem
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
             }
 
-            foreach(QuestStep questStep in questStepsToTrigger)
-            {
-                if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
-                sendNextStepId?.Invoke(questStep.stepId);
-            }
+
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepCompleted Event (delegate) with argument: {stepId}", this);
             stepCompleted?.Invoke(stepId);
-            if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepActive Event (delegate) with arguments: {stepId}, {stepStatus} ", this);
+
+            foreach (QuestStep questStep in questStepsToTrigger)
+            {
+                if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
+
+                //Si questStep.prerequisitesStep are in QuestItem.stepsCompleted
+                sendNextStepId?.Invoke(questStep.stepId);
+            }
+            if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepActive Event (delegate) with arguments: {stepId}, {stepStatus} ", this);
             stepActive?.Invoke(stepId, stepStatus);
 
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);

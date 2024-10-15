@@ -208,6 +208,7 @@ namespace jeanf.questsystem
         {
             try
             {
+                //Save; active steps + quest step status for each, completed steps, quest status, progress/playerLevel/?
                 QuestData questData = null;
                 //quest.GetQuestData();
                 // serialize using JsonUtility, but use whatever you want here (like JSON.NET)
