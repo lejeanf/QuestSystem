@@ -116,16 +116,9 @@ namespace jeanf.questsystem
             if (stepMap[id].stepStatus != QuestStepStatus.Inactive) return;
             if (activeSteps.ContainsKey(id)) return;
 
-            if (stepMap[id].prerequisiteSteps.Any())
-            {
-                bool areStepsPrerequisitesMet = stepMap[id].prerequisiteSteps.All(item => completedSteps.ContainsValue(item));
-                if (!areStepsPrerequisitesMet) return;
-                Instantiate(stepMap[id], this.transform, true);
-            }
-            else
-            {
-                Instantiate(stepMap[id], this.transform, true);
-            }
+
+            Instantiate(stepMap[id], this.transform, true);
+
         }
         private void LoadDependencies()
         {

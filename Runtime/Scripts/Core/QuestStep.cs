@@ -36,7 +36,6 @@ namespace jeanf.questsystem
         #region step trigger and completion
         [Header("Quest Step Progression events & Variables")]
         public List<QuestStep> questStepsToTrigger = new List<QuestStep>();
-        public List<QuestStep> prerequisiteSteps = new List<QuestStep>();
         public delegate void SendNextStepId(string id);
         public static SendNextStepId sendNextStepId;
 
@@ -74,7 +73,7 @@ namespace jeanf.questsystem
             if(stepValidationOverride) stepValidationOverride.OnEventRaised += ValidateCurrentStep;
         }
 
-        private void Unsubscribe()
+        protected virtual void Unsubscribe()
         {
             QuestItem.ValidateStepEvent -= ValidateCurrentStep;
             if(stepValidationOverride) stepValidationOverride.OnEventRaised -= ValidateCurrentStep;
@@ -132,6 +131,8 @@ namespace jeanf.questsystem
 
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepCompleted Event (delegate) with argument: {stepId}", this);
             stepCompleted?.Invoke(stepId);
+            if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepActive Event (delegate) with arguments: {stepId}, {stepStatus} ", this);
+            stepActive?.Invoke(stepId, stepStatus);
 
             foreach (QuestStep questStep in questStepsToTrigger)
             {
@@ -140,8 +141,7 @@ namespace jeanf.questsystem
                 //Si questStep.prerequisitesStep are in QuestItem.stepsCompleted
                 sendNextStepId?.Invoke(questStep.stepId);
             }
-            if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepActive Event (delegate) with arguments: {stepId}, {stepStatus} ", this);
-            stepActive?.Invoke(stepId, stepStatus);
+
 
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);
             Destroy(this.gameObject);
