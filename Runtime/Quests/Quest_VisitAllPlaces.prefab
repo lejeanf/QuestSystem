@@ -28,13 +28,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5258580714634048286}
-  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 7.37, y: 1, z: 6.08}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
+  m_RootOrder: -2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7682207879693783699
 MeshFilter:
@@ -171,7 +171,8 @@ MonoBehaviour:
   progress: 0
   clearToStart: 0
   QuestProgress: {fileID: 11400000, guid: d6b05e1957994c8449fb72e849a2a3d6, type: 2}
-  StartQuestEventChannel: {fileID: 11400000, guid: c510c1e4d26428740b3e329cca98e5d1,
-    type: 2}
   QuestInitialCheck: {fileID: 11400000, guid: 4f5235d1ff779064cabee9ca65296d7f, type: 2}
+  resetChannel: {fileID: 11400000, guid: f5878d9ead688634e8a37cb28026e722, type: 2}
   requirementCheck: {fileID: 11400000, guid: a4dae407f780f974abbf43c280515876, type: 2}
+  loadRequiredScenesEventChannel: {fileID: 0}
+  unlockDoorsEventChannel: {fileID: 0}
