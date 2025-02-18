@@ -20,3 +20,7 @@ Credits:
 
 Contributors:
 [Code] Felix Cotes-Charlebois <a href="https://github.com/Percevent13">
+
+LICENCE:
+
+<img src="https://licensebuttons.net/l/by-nc-sa/3.0/88x31.png"></img>
