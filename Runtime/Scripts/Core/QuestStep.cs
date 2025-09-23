@@ -116,6 +116,10 @@ namespace jeanf.questsystem
             FinishQuestStep();
         }
 
+        public void AbortStep()
+        {
+            Destroy(this.gameObject);
+        }
         public void FinishQuestStep()
         {
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Changing status to completed", this);
