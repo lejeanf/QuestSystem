@@ -4,13 +4,12 @@ using jeanf.propertyDrawer;
 using UnityEngine;
 using UnityEngine.Playables;
 using System.Collections.Generic;
-using GraphProcessor;
 using jeanf.validationTools;
 using UnityEditor;
 
 namespace jeanf.questsystem
 {
-    [System.Serializable, NodeMenuItem("questSystem/QuestStep"), DefaultExecutionOrder(1)]
+    [System.Serializable, DefaultExecutionOrder(1)]
     public class QuestStep : MonoBehaviour, IDebugBehaviour
     {
         #region Ids and status
