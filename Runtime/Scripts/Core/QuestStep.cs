@@ -53,7 +53,7 @@ namespace jeanf.questsystem
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
         [SerializeField] private StringEventChannelSO stepValidationOverride;
-        [SerializeField] private StringEventChannelSO abortStepSO;
+        [SerializeField] protected StringEventChannelSO abortStepSO;
         #endregion
 
         #region standard unity methods
