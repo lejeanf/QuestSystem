@@ -53,6 +53,7 @@ namespace jeanf.questsystem
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
         [SerializeField] private StringEventChannelSO stepValidationOverride;
+        [SerializeField] private StringEventChannelSO abortStepSO;
         #endregion
 
         #region standard unity methods
@@ -69,13 +70,15 @@ namespace jeanf.questsystem
         private void Subscribe()
         {
             QuestItem.ValidateStepEvent += ValidateCurrentStep;
+            if (abortStepSO) abortStepSO.OnEventRaised += ctx => AbortStep(ctx);
             if(stepValidationOverride) stepValidationOverride.OnEventRaised += ValidateCurrentStep;
         }
 
         protected virtual void Unsubscribe()
         {
             QuestItem.ValidateStepEvent -= ValidateCurrentStep;
-            if(stepValidationOverride) stepValidationOverride.OnEventRaised -= ValidateCurrentStep;
+            if (abortStepSO) abortStepSO.OnEventRaised -= ctx => AbortStep(ctx);
+            if (stepValidationOverride) stepValidationOverride.OnEventRaised -= ValidateCurrentStep;
         }
         #endregion
 
@@ -119,6 +122,13 @@ namespace jeanf.questsystem
         public void AbortStep()
         {
             Destroy(this.gameObject);
+        }
+        public void AbortStep(string id)
+        {
+            if (id == this.stepId)
+            {
+                Destroy(this.gameObject);
+            }
         }
         public void FinishQuestStep()
         {
