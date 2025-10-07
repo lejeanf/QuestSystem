@@ -125,6 +125,7 @@ namespace jeanf.questsystem
         }
         public void AbortStep(string id)
         {
+            Debug.Log("Aborting Step: " + this.gameObject.name);
             if (id == this.stepId)
             {
                 Destroy(this.gameObject);
