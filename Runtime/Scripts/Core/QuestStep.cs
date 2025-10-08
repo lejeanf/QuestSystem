@@ -139,7 +139,7 @@ namespace jeanf.questsystem
         }
 
 
-        protected void ApplyFailureConsequence()
+        protected virtual void ApplyFailureConsequence()
         {
             endStepChannel.RaiseEvent(stepId);
         }
