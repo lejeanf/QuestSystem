@@ -60,7 +60,7 @@ namespace jeanf.questsystem
         [Header("Step Parameters")]
         [SerializeField] protected bool isTimed;
         [SerializeField, DrawIf("isTimed", true, ComparisonType.Equals, DisablingType.DontDraw)] float timerDuration;
-        float time;
+        [SerializeField, DrawIf("isTimed", true, ComparisonType.Equals, DisablingType.ReadOnly)] float time;
         #region standard unity methods
         public void OnEnable()
         {
