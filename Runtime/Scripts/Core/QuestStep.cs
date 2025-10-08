@@ -72,7 +72,11 @@ namespace jeanf.questsystem
         {
             if (isTimed)
             {
-                increaseTimer();
+                time += Time.deltaTime;
+                if (time > timerDuration)
+                {
+                    ApplyFailureConsequence();
+                }
             }
         }
         public void OnDisable() => Unsubscribe();
@@ -82,14 +86,12 @@ namespace jeanf.questsystem
         private void Subscribe()
         {
             QuestItem.ValidateStepEvent += ValidateCurrentStep;
-            //if (abortStepSO) abortStepSO.OnEventRaised += ctx => AbortStep(ctx);
             if(stepValidationOverride) stepValidationOverride.OnEventRaised += ValidateCurrentStep;
         }
 
         protected virtual void Unsubscribe()
         {
             QuestItem.ValidateStepEvent -= ValidateCurrentStep;
-            //if (abortStepSO) abortStepSO.OnEventRaised -= ctx => AbortStep(ctx);
             if (stepValidationOverride) stepValidationOverride.OnEventRaised -= ValidateCurrentStep;
         }
         #endregion
@@ -135,22 +137,11 @@ namespace jeanf.questsystem
         {
             Destroy(this.gameObject);
         }
-        //public void AbortStep(string id)
-        //{
-        //    if (id == this.stepId)
-        //    {
-        //        Destroy(this.gameObject);
-        //    }
-        //}
 
-        protected void increaseTimer()
+
+        protected void ApplyFailureConsequence()
         {
-            time += Time.deltaTime;
-
-            if (time >= timerDuration)
-            {
-                endStepChannel.RaiseEvent(this.stepId);
-            }
+            endStepChannel.RaiseEvent(stepId);
         }
         public void FinishQuestStep()
         {
