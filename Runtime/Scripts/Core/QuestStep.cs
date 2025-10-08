@@ -58,7 +58,7 @@ namespace jeanf.questsystem
         #endregion
 
         [Header("Step Parameters")]
-        [SerializeField] bool isTimed;
+        [SerializeField] protected bool isTimed;
         [SerializeField, DrawIf("isTimed", true, ComparisonType.Equals, DisablingType.DontDraw)] float timerDuration;
         float time;
         #region standard unity methods
