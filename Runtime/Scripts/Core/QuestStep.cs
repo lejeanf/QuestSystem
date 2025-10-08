@@ -59,7 +59,8 @@ namespace jeanf.questsystem
 
         [Header("Step Parameters")]
         [SerializeField] bool isTimed;
-        [SerializeField] float timerDuration;
+        [SerializeField, DrawIf("isTimed", true, ComparisonType.Equals, DisablingType.DontDraw)] float timerDuration;
+        float time;
         #region standard unity methods
         public void OnEnable()
         {
@@ -69,7 +70,10 @@ namespace jeanf.questsystem
 
         private void Update()
         {
-            
+            if (isTimed)
+            {
+                increaseTimer();
+            }
         }
         public void OnDisable() => Unsubscribe();
 
@@ -138,6 +142,16 @@ namespace jeanf.questsystem
         //        Destroy(this.gameObject);
         //    }
         //}
+
+        protected void increaseTimer()
+        {
+            time += Time.deltaTime;
+
+            if (time >= timerDuration)
+            {
+                endStepChannel.RaiseEvent(this.stepId);
+            }
+        }
         public void FinishQuestStep()
         {
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Changing status to completed", this);
