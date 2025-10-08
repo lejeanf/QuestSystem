@@ -53,9 +53,12 @@ namespace jeanf.questsystem
         [Header("Event Channels")]
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
         [SerializeField] private StringEventChannelSO stepValidationOverride;
-        [SerializeField] protected StringEventChannelSO abortStepSO;
+        //[SerializeField] protected StringEventChannelSO abortStepSO;
         #endregion
 
+        [Header("Step Parameters")]
+        [SerializeField] bool isTimed;
+        [SerializeField] float timerDuration;
         #region standard unity methods
         public void OnEnable()
         {
@@ -63,6 +66,10 @@ namespace jeanf.questsystem
             InitializeQuestStep();
         }
 
+        private void Update()
+        {
+            
+        }
         public void OnDisable() => Unsubscribe();
 
         public void OnDestroy() => Unsubscribe();
@@ -70,14 +77,14 @@ namespace jeanf.questsystem
         private void Subscribe()
         {
             QuestItem.ValidateStepEvent += ValidateCurrentStep;
-            if (abortStepSO) abortStepSO.OnEventRaised += ctx => AbortStep(ctx);
+            //if (abortStepSO) abortStepSO.OnEventRaised += ctx => AbortStep(ctx);
             if(stepValidationOverride) stepValidationOverride.OnEventRaised += ValidateCurrentStep;
         }
 
         protected virtual void Unsubscribe()
         {
             QuestItem.ValidateStepEvent -= ValidateCurrentStep;
-            if (abortStepSO) abortStepSO.OnEventRaised -= ctx => AbortStep(ctx);
+            //if (abortStepSO) abortStepSO.OnEventRaised -= ctx => AbortStep(ctx);
             if (stepValidationOverride) stepValidationOverride.OnEventRaised -= ValidateCurrentStep;
         }
         #endregion
@@ -123,13 +130,13 @@ namespace jeanf.questsystem
         {
             Destroy(this.gameObject);
         }
-        public void AbortStep(string id)
-        {
-            if (id == this.stepId)
-            {
-                Destroy(this.gameObject);
-            }
-        }
+        //public void AbortStep(string id)
+        //{
+        //    if (id == this.stepId)
+        //    {
+        //        Destroy(this.gameObject);
+        //    }
+        //}
         public void FinishQuestStep()
         {
             if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Changing status to completed", this);
