@@ -34,7 +34,8 @@ namespace jeanf.questsystem
 
         #region step trigger and completion
         [Header("Quest Step Progression events & Variables")]
-        public List<QuestStep> questStepsToTrigger = new List<QuestStep>();
+        public List<QuestStep> questStepsTriggeredOnCompletion = new List<QuestStep>();
+        public List<QuestStep> questStepsTriggeredOnFailure = new List<QuestStep>();
         public delegate void SendNextStepId(string id);
         public static SendNextStepId sendNextStepId;
 
@@ -119,8 +120,8 @@ namespace jeanf.questsystem
                 
             }
 
-            if(isDebug) Debug.Log($"Step with id [{stepId}] has {questStepsToTrigger.Count} childSteps");
-            foreach(QuestStep questStep in questStepsToTrigger)
+            if(isDebug) Debug.Log($"Step with id [{stepId}] has {questStepsTriggeredOnCompletion.Count} childSteps");
+            foreach(QuestStep questStep in questStepsTriggeredOnCompletion)
             {
                 if(isDebug) Debug.Log($"sending childstep to initialization: {questStep.name}, stepId: [{questStep.stepId}]");
                 childStep?.Invoke(questStep);
@@ -142,6 +143,13 @@ namespace jeanf.questsystem
         protected virtual void ApplyFailureConsequence()
         {
             endStepChannel.RaiseEvent(stepId);
+            foreach (QuestStep questStep in questStepsTriggeredOnFailure)
+            {
+                if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
+
+                //Si questStep.prerequisitesStep are in QuestItem.stepsCompleted
+                sendNextStepId?.Invoke(questStep.stepId);
+            }
         }
         public void FinishQuestStep()
         {
@@ -160,7 +168,7 @@ namespace jeanf.questsystem
             if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepActive Event (delegate) with arguments: {stepId}, {stepStatus} ", this);
             stepActive?.Invoke(stepId, stepStatus);
 
-            foreach (QuestStep questStep in questStepsToTrigger)
+            foreach (QuestStep questStep in questStepsTriggeredOnCompletion)
             {
                 if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
 
