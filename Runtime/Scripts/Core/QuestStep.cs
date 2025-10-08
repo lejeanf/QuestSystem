@@ -54,6 +54,7 @@ namespace jeanf.questsystem
         [SerializeField] private StringEventChannelSO sendQuestStepTooltip;
         [SerializeField] private StringEventChannelSO stepValidationOverride;
         //[SerializeField] protected StringEventChannelSO abortStepSO;
+        [SerializeField] protected StringEventChannelSO endStepChannel;
         #endregion
 
         [Header("Step Parameters")]
