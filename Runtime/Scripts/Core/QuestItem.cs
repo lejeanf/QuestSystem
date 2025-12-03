@@ -75,7 +75,7 @@ namespace jeanf.questsystem
             questId = questSO.id;
             for (int i = 0; i < questSO.rootSteps.Length; i++)
             {
-                if (isDebug) Debug.Log($"id on awake {questSO.rootSteps[i].StepId}, added to {this.name}'s dictionary", this);
+                //if (isDebug) Debug.Log($"id on awake {questSO.rootSteps[i].StepId}, added to {this.name}'s dictionary", this);
                 AddStepToStepMap(questSO.rootSteps[i]);
                 rootSteps.Add(questSO.rootSteps[i]);
             }
@@ -155,15 +155,15 @@ namespace jeanf.questsystem
         }
         private void AddStepToStepMap(QuestStep step)
         {
-            if (isDebug) Debug.Log($"--- Received request to add step {step.name} with id: {step.StepId} to stepMap.");
+            //if (isDebug) Debug.Log($"--- Received request to add step {step.name} with id: {step.StepId} to stepMap.");
             if (!stepMap.ContainsKey(step.StepId))
             {
-                if (isDebug) Debug.Log($"--- Step [{step.StepId}] not found in stepMap, adding it.");
+                //if (isDebug) Debug.Log($"--- Step [{step.StepId}] not found in stepMap, adding it.");
                 stepMap.Add(step.StepId, step);
             }
             if (completedSteps.ContainsKey(step.StepId))
             {
-                if (isDebug) Debug.Log($"--- Step [{step.StepId}] already completed removing it from completeSteps so that we can go through it again.");
+                //if (isDebug) Debug.Log($"--- Step [{step.StepId}] already completed removing it from completeSteps so that we can go through it again.");
                 completedSteps.Remove(step.StepId);
             }
         }
@@ -185,7 +185,7 @@ namespace jeanf.questsystem
             completedSteps.Clear();
             completedSteps.TrimExcess();
 
-            if (isDebug) Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
+            //if (isDebug) Debug.Log($"Quest [{id}]: _startQuestOnEnable value is: [{_startQuestOnEnable}]");
             if (!_startQuestOnEnable || id != questId) return;
             clearToStart = true;
             currentQuestState = QuestState.CAN_START;
@@ -221,28 +221,28 @@ namespace jeanf.questsystem
         }
         private void UpdateState()
         {
-            if (isDebug) Debug.Log($"Updating State...");
+            //if (isDebug) Debug.Log($"Updating State...");
             if (!clearToStart) return;
-            if (isDebug) Debug.Log($"All is clear, continuing ...");
+            //if (isDebug) Debug.Log($"All is clear, continuing ...");
 
             switch (currentQuestState)
             {
                 case QuestState.CAN_START:
                     {
-                        if (isDebug) Debug.Log($"Starting quest: {questId}");
+                        //if (isDebug) Debug.Log($"Starting quest: {questId}");
                         GameEventsManager.instance.questEvents.StartQuest(questId);
                         break;
                     }
                 case QuestState.CAN_FINISH:
                     {
-                        if (isDebug) Debug.Log($"Finishing quest: {questId}");
+                        //if (isDebug) Debug.Log($"Finishing quest: {questId}");
                         GameEventsManager.instance.questEvents.FinishQuest(questId);
                         break;
                     }
                 case QuestState.REQUIREMENTS_NOT_MET:
                     if (_startQuestOnEnable)
                     {
-                        if (isDebug) Debug.Log($"forcing start of quest: {questId}");
+                        //if (isDebug) Debug.Log($"forcing start of quest: {questId}");
                         GameEventsManager.instance.questEvents.StartQuest(questId);
                     }
                     break;
@@ -258,7 +258,7 @@ namespace jeanf.questsystem
         {
             if (id != questId) return;
             this.progress = progress;
-            if (isDebug) Debug.Log($"questid [{id}] progress = {progress * 100}%");
+            //if (isDebug) Debug.Log($"questid [{id}] progress = {progress * 100}%");
         }
         private void QuestStateChange(Quest quest)
         {
@@ -294,10 +294,10 @@ namespace jeanf.questsystem
         }
         public void LogActiveSteps()
         {
-            Debug.Log($"There is {activeSteps.Count} active steps at the moment.");
+            //Debug.Log($"There is {activeSteps.Count} active steps at the moment.");
             foreach (var step in activeSteps.Keys)
             {
-                Debug.Log($"active step: {step}");
+                //Debug.Log($"active step: {step}");
             }
         }
 #endif
@@ -316,7 +316,7 @@ namespace jeanf.questsystem
 
             if (QuestInitialCheck == null)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestInitialCheck in {searchLocation} ", this);
+                //if (isDebug) Debug.Log($"{searching} {_}/QuestInitialCheck in {searchLocation} ", this);
                 QuestInitialCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestInitialCheck");
                 if (QuestInitialCheck == null)
                 {
@@ -329,7 +329,7 @@ namespace jeanf.questsystem
 
             if (questSO == null)
             {
-                if (isDebug) Debug.Log($"There is no questSO in the questItem");
+                //if (isDebug) Debug.Log($"There is no questSO in the questItem");
                 validityCheck = false;
                 invalidObjects.Add(questSO);
             }
@@ -337,7 +337,7 @@ namespace jeanf.questsystem
 
             if (QuestProgress == null)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestsProgressChannel in {searchLocation} ", this);
+                //if (isDebug) Debug.Log($"{searching} {_}/QuestsProgressChannel in {searchLocation} ", this);
                 QuestProgress = Resources.Load<StringFloatEventChannelSO>($"{_}/QuestsProgressChannel");
                 if (QuestProgress == null)
                 {
@@ -350,7 +350,7 @@ namespace jeanf.questsystem
 
             if (loadRequiredScenesEventChannel == null)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/loadRequiredScenesEventChannel in {searchLocation} ", this);
+                //if (isDebug) Debug.Log($"{searching} {_}/loadRequiredScenesEventChannel in {searchLocation} ", this);
                 loadRequiredScenesEventChannel = Resources.Load<StringListEventChannelSO>($"{_}/LoadRequiredScenesEventChannel");
                 if (loadRequiredScenesEventChannel == null)
                 {
@@ -363,7 +363,7 @@ namespace jeanf.questsystem
 
             if (requirementCheck == null)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestRequirementCheck in {searchLocation}", this);
+                //if (isDebug) Debug.Log($"{searching} {_}/QuestRequirementCheck in {searchLocation}", this);
                 requirementCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestRequirementCheck");
                 if (requirementCheck == null)
                 {

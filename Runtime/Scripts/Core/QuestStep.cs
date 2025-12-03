@@ -103,7 +103,7 @@ namespace jeanf.questsystem
             // failsafe to avoid lauching the same step more than once at a time.
             if (stepStatus == QuestStepStatus.Active) return;
             
-            if(isDebug) Debug.Log($"Initializing questStep [{stepId}] with for quest with questId: [{questId}]");
+            //if(isDebug) Debug.Log($"Initializing questStep [{stepId}] with for quest with questId: [{questId}]");
 
             stepStatus = QuestStepStatus.Active;
             stepActive?.Invoke(stepId, stepStatus);
@@ -115,15 +115,15 @@ namespace jeanf.questsystem
             }
             if (isUsingIntroTimeline && timeline)
             {
-                if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
+                //if(isDebug) Debug.Log($"sending trigger to timeline: {timeline.name}, triggerValue: true");
                 _timelineTriggerEventChannelSo.RaiseEvent(timeline, true);
                 
             }
 
-            if(isDebug) Debug.Log($"Step with id [{stepId}] has {questStepsToTrigger.Count} childSteps");
+            //if(isDebug) Debug.Log($"Step with id [{stepId}] has {questStepsToTrigger.Count} childSteps");
             foreach(QuestStep questStep in questStepsToTrigger)
             {
-                if(isDebug) Debug.Log($"sending childstep to initialization: {questStep.name}, stepId: [{questStep.stepId}]");
+                //if(isDebug) Debug.Log($"sending childstep to initialization: {questStep.name}, stepId: [{questStep.stepId}]");
                 childStep?.Invoke(questStep);
             }
         }
@@ -145,7 +145,7 @@ namespace jeanf.questsystem
             endStepChannel.RaiseEvent(stepId);
             foreach (QuestStep questStep in questStepsTriggeredOnFailure)
             {
-                if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
+                //if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
 
                 //Si questStep.prerequisitesStep are in QuestItem.stepsCompleted
                 sendNextStepId?.Invoke(questStep.stepId);
@@ -153,31 +153,31 @@ namespace jeanf.questsystem
         }
         public void FinishQuestStep()
         {
-            if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Changing status to completed", this);
+            //if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Changing status to completed", this);
             stepStatus = QuestStepStatus.Completed;
   
             if (sendQuestStepTooltip != null)
             {
-                if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending tooltip", this);
+                //if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending tooltip", this);
                 sendQuestStepTooltip.RaiseEvent(string.Empty);
             }
 
 
-            if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepCompleted Event (delegate) with argument: {stepId}", this);
+            //if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepCompleted Event (delegate) with argument: {stepId}", this);
             stepCompleted?.Invoke(stepId);
-            if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepActive Event (delegate) with arguments: {stepId}, {stepStatus} ", this);
+            //if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Sending stepActive Event (delegate) with arguments: {stepId}, {stepStatus} ", this);
             stepActive?.Invoke(stepId, stepStatus);
 
             foreach (QuestStep questStep in questStepsToTrigger)
             {
-                if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
+                //if (isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Requesting to start next step: {questStep.stepId}", this);
 
                 //Si questStep.prerequisitesStep are in QuestItem.stepsCompleted
                 sendNextStepId?.Invoke(questStep.stepId);
             }
 
 
-            if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);
+            //if(isDebug) Debug.Log($" ---- Step with id: {stepId} finished. Destroying the gameobject with name {this.name}", this);
             Destroy(this.gameObject);
         }
         #endregion

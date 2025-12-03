@@ -212,7 +212,7 @@ namespace jeanf.questsystem
                 //quest.GetQuestData();
                 // serialize using JsonUtility, but use whatever you want here (like JSON.NET)
                 string serializedData = JsonUtility.ToJson(questData);
-                if(isDebug) Debug.Log($"saved data {serializedData}");
+                //if(isDebug) Debug.Log($"saved data {serializedData}");
                 // saving to PlayerPrefs is just a quick example for this tutorial video,
                 // you probably don't want to save this info there long-term.
                 // instead, use an actual Save & Load system and write to a file, the cloud, etc..
@@ -220,12 +220,12 @@ namespace jeanf.questsystem
             }
             catch (System.Exception e)
             {
-                Debug.LogError("Failed to save quest with id " + quest.questSO.id + ": " + e);
+                //Debug.LogError("Failed to save quest with id " + quest.questSO.id + ": " + e);
             }
         }
         private Quest LoadQuest(QuestSO questSO)
         {
-            Debug.Log($"attempting to load quest with id: [{questSO.id}]");
+            //Debug.Log($"attempting to load quest with id: [{questSO.id}]");
             var quest = new Quest(questSO);
             try
             {
@@ -235,18 +235,18 @@ namespace jeanf.questsystem
                     var serializedData = PlayerPrefs.GetString(questSO.id);
                     var questData = JsonUtility.FromJson<QuestData>(serializedData);
                     quest = new Quest(questSO, questData.state, questData.questStepIndex, questData.questStepStates); 
-                    Debug.Log($"loaded previously saved quest with id: [{quest.questSO.id}]");
+                    //Debug.Log($"loaded previously saved quest with id: [{quest.questSO.id}]");
                 }
                 // otherwise, initialize a new quest
                 else
                 {
                     quest = new Quest(questSO);
-                    Debug.Log($"loaded a fresh instance of quest with id: [{quest.questSO.id}]");
+                    //Debug.Log($"loaded a fresh instance of quest with id: [{quest.questSO.id}]");
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"Failed to load quest with id: [{quest.questSO.id}] - exception: {e}");
+                //Debug.LogError($"Failed to load quest with id: [{quest.questSO.id}] - exception: {e}");
             }
 
             return quest;
