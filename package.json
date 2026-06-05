@@ -8,6 +8,10 @@
     "jeanf",
     "quest system"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lejeanf/QuestSystem"
+  },
   "author": {
     "name": "Jean-François Robin",
     "email": "robin.jeanfrancois@gmail.com",
