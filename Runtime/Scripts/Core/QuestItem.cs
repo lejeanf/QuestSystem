@@ -41,6 +41,7 @@ namespace jeanf.questsystem
         [ReadOnly]
         private bool clearToStart = false;
         private string questId;
+        private int _initRequestVersion;
         private QuestState currentQuestState;
         [ReadOnly]
         [Range(0, 1)]
@@ -87,15 +88,14 @@ namespace jeanf.questsystem
         private void OnEnable()
         {
             Subscribe();
-
-            Init(questId);
+            RunInitWhenCatalogueReady(questId);
         }
         private void OnDisable() => Unsubscribe();
         private void OnDestroy() => Unsubscribe();
         private void Subscribe()
         {
             resetChannel.OnEventRaised += Reset;
-            QuestInitialCheck.OnEventRaised += Init;
+            QuestInitialCheck.OnEventRaised += OnQuestInitialCheck;
             QuestProgress.OnEventRaised += UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange += QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed += UpdateState;
@@ -108,7 +108,7 @@ namespace jeanf.questsystem
         private void Unsubscribe()
         {
             resetChannel.OnEventRaised -= Reset;
-            QuestInitialCheck.OnEventRaised -= Init;
+            QuestInitialCheck.OnEventRaised -= OnQuestInitialCheck;
             QuestProgress.OnEventRaised -= UpdateProgress;
             GameEventsManager.instance.questEvents.onQuestStateChange -= QuestStateChange;
             GameEventsManager.instance.inputEvents.onSubmitPressed -= UpdateState;
@@ -170,6 +170,27 @@ namespace jeanf.questsystem
         #endregion
 
         #region quest process
+        private void OnQuestInitialCheck(string id) => RunInitWhenCatalogueReady(id);
+
+        private async void RunInitWhenCatalogueReady(string id)
+        {
+            var requestVersion = ++_initRequestVersion;
+            try
+            {
+                await QuestCatalogue.WhenReadyAsync();
+            }
+            catch (InvalidOperationException e)
+            {
+                Debug.LogError($"[QuestItem] Cannot initialize quest '{id}': {e.Message}", this);
+                return;
+            }
+
+            if (requestVersion != _initRequestVersion || !isActiveAndEnabled)
+                return;
+
+            Init(id);
+        }
+
         private void Init(string id)
         {
             if (transform.childCount > 0)

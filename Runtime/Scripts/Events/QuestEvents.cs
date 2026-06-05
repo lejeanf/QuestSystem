@@ -11,22 +11,22 @@ namespace jeanf.questsystem
 
         public void StartQuest(string id)
         {
-            if (onStartQuest != null)
-            {
-                Debug.Log($"starting quest: {id}");
-                onStartQuest(id);
-            }
+            if (onStartQuest == null)
+                return;
+
+            Debug.Log($"starting quest: {id}");
+            onStartQuest(id);
         }
 
         public event Action<string> onFinishQuest;
 
         public void FinishQuest(string id)
         {
-            if (onFinishQuest != null)
-            {
-                Debug.Log($"finishing quest: {id}");
-                onFinishQuest(id);
-            }
+            if (onFinishQuest == null)
+                return;
+
+            Debug.Log($"finishing quest: {id}");
+            onFinishQuest(id);
         }
 
         public event Action<Quest> onQuestStateChange;

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using jeanf.EventSystem;
 using jeanf.validationTools;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.Serialization;
 
 namespace jeanf.questsystem
@@ -34,28 +36,29 @@ namespace jeanf.questsystem
         [FormerlySerializedAs("loadQuestState")] [Header("Config")] [SerializeField]
         private bool loadSavedQuestState = true;
         private Dictionary<string, Quest> questMap;
+        private readonly Queue<string> _pendingStartQuestIds = new Queue<string>();
+        private readonly Queue<string> _pendingFinishQuestIds = new Queue<string>();
         private int currentPlayerLevel;
+        
+        // Label strings to load for scriptable objects
+        [Header("Addressables group to load:")]
+        [Tooltip("This group should contain all the scriptable objects that define your quests.")]
+        public List<string> _keys = new List<string>() { "Quests" };
+        private AsyncOperationHandle<IList<QuestSO>> _questAssetsHandle;
+
         #endregion
         #endregion
 
         #region Methods
         #region Standard Unity Methods
-        private void Awake()
-        {
-            questMap = CreateQuestMap();
-
-            foreach (var quest in questMap)
-            {
-                CheckIfQuestIsAlreadyLoaded(quest.Key);
-            }
-        }
+       
         private void OnEnable()
         {
             GameEventsManager.instance.questEvents.onStartQuest += StartQuest;
             GameEventsManager.instance.questEvents.onFinishQuest += FinishQuest;       
-            //GameEventsManager.instance.questEvents.onQuestStepStateChange += QuestStepStateChange;
             GameEventsManager.instance.playerEvents.onPlayerLevelChange += PlayerLevelChange;
-            questStatusUpdateRequested.OnEventRaised += ctx => CheckRequirementsMet(questMap[ctx]);
+            questStatusUpdateRequested.OnEventRaised += OnQuestStatusUpdateRequested;
+            //GameEventsManager.instance.questEvents.onQuestStepStateChange += QuestStepStateChange;
         }
         private void OnDisable() => Unsubscribe();
         private void OnDestroy() => Unsubscribe();
@@ -63,22 +66,50 @@ namespace jeanf.questsystem
         {
             GameEventsManager.instance.questEvents.onStartQuest -= StartQuest;
             GameEventsManager.instance.questEvents.onFinishQuest -= FinishQuest;
-
-            //GameEventsManager.instance.questEvents.onQuestStepStateChange -= QuestStepStateChange;
-
             GameEventsManager.instance.playerEvents.onPlayerLevelChange -= PlayerLevelChange;
-
+            questStatusUpdateRequested.OnEventRaised -= OnQuestStatusUpdateRequested;
+            if (_questAssetsHandle.IsValid())
+                Addressables.Release(_questAssetsHandle);
+            QuestCatalogue.Reset();
+            _pendingStartQuestIds.Clear();
+            _pendingFinishQuestIds.Clear();
+            //GameEventsManager.instance.questEvents.onQuestStepStateChange -= QuestStepStateChange;
         }
-        private void Start()
+
+        private void OnQuestStatusUpdateRequested(string questId)
         {
-            foreach (Quest quest in questMap.Values)
+            if (questMap == null || !questMap.TryGetValue(questId, out var quest))
+                return;
+            CheckRequirementsMet(quest);
+        }
+     
+        private async Awaitable Start()
+        {
+            QuestCatalogue.BeginLoad();
+            try
             {
-                // broadcast the initial state of all quests on startup
-                GameEventsManager.instance.questEvents.QuestStateChange(quest);
+                questMap = await CreateQuestMap();
+                QuestCatalogue.MarkReady();
+                FlushPendingQuestOperations();
+
+                foreach (var quest in questMap)
+                {
+                    CheckIfQuestIsAlreadyLoaded(quest.Key);
+                    GameEventsManager.instance.questEvents.QuestStateChange(quest.Value);
+                }
+            }
+            catch (Exception e)
+            {
+                QuestCatalogue.MarkFailed(e);
+                Debug.LogError($"[QuestManager] Error loading quest catalogue: {e.Message}");
             }
         }
+        
         private void Update()
         {
+            if (!QuestCatalogue.IsReady || questMap == null)
+                return;
+
             // loop through ALL quests
             foreach (Quest quest in questMap.Values)
             {
@@ -91,6 +122,8 @@ namespace jeanf.questsystem
         }
         private void OnApplicationQuit()
         {
+            if (questMap == null)
+                return;
             foreach (Quest quest in questMap.Values)
             {
                 SaveQuest(quest);
@@ -99,10 +132,47 @@ namespace jeanf.questsystem
         #endregion
 
         #region Quest Checks and getters
-        private Dictionary<string, Quest> CreateQuestMap()
+
+        private static async Awaitable AwaitAsyncOperation<T>(AsyncOperationHandle<T> handle)
         {
-            // loads all QuestInfoSO Scriptable Objects under the Assets/Resources/Quests folder
-            QuestSO[] allQuests = Resources.LoadAll<QuestSO>("Quests");
+            while (!handle.IsDone)
+                await Awaitable.NextFrameAsync();
+
+            if (handle.Status != AsyncOperationStatus.Succeeded)
+                throw new Exception("QuestManager failed to load Addressable assets.");
+        }
+
+        private async Awaitable<IList<QuestSO>> LoadQuestAssets(List<string> labels)
+        {
+            _questAssetsHandle = Addressables.LoadAssetsAsync<QuestSO>(
+                labels,
+                addressable =>
+                {
+                    if (isDebug) Debug.Log($"[QuestManager] Loaded quest SO: {addressable.name}");
+                },
+                Addressables.MergeMode.Union,
+                true);
+
+            await AwaitAsyncOperation(_questAssetsHandle);
+            return _questAssetsHandle.Result;
+        }
+      
+        private async Awaitable<Dictionary<string, Quest>> CreateQuestMap()
+        {
+            // loads all QuestInfoSO Scriptable Objects under the Assets/Quests folder
+            Debug.Log("[QuestManager] Creating quest map");
+            IList<QuestSO> allQuests =  new List<QuestSO>();
+            try
+            {
+                allQuests = await LoadQuestAssets(_keys);
+                if (isDebug) Debug.Log($"[QuestManager] Successfully loaded {allQuests.Count} assets!");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[QuestManager] Error loading assets: {e.Message}");
+                throw;
+            }
+            
             // Create the quest map
             Dictionary<string, Quest> questMap = new Dictionary<string, Quest>();
             foreach (QuestSO questSO in allQuests)
@@ -110,13 +180,13 @@ namespace jeanf.questsystem
                 var id = questSO.id;
                 if (questMap.ContainsKey(id))
                 {
-                    Debug.LogWarning("Duplicate ID found when creating quest map: " + questSO.id);
+                    Debug.LogWarning($"[QuestManager] Duplicate ID found when creating quest map: {questSO.id}");
                 }
                 else
                 {
                     questMap.Add(id, LoadQuest(questSO));
                 }
-                if (isDebug) Debug.Log($"Adding {questSO.name} to the questmap, its id is: {questSO.id}");
+                if (isDebug) Debug.Log($"[QuestManager] Adding {questSO.name} to the questmap, its id is: {questSO.id}");
             }
             return questMap;
         }
@@ -126,13 +196,34 @@ namespace jeanf.questsystem
         }
         public Quest GetQuestById(string id)
         {
-            Quest quest = questMap[id];
-            if (quest == null)
+            if (questMap == null || !questMap.TryGetValue(id, out var quest))
             {
-                Debug.LogError("ID not found in the Quest Map: " + id);
+                Debug.LogError($"[QuestManager] ID not found in the quest map: {id}");
+                return null;
             }
 
             return quest;
+        }
+
+        private void FlushPendingQuestOperations()
+        {
+            while (_pendingStartQuestIds.Count > 0)
+                StartQuestCore(_pendingStartQuestIds.Dequeue());
+
+            while (_pendingFinishQuestIds.Count > 0)
+                FinishQuestCore(_pendingFinishQuestIds.Dequeue());
+        }
+
+        private static bool EnqueueUnique(Queue<string> queue, string id)
+        {
+            foreach (var pending in queue)
+            {
+                if (pending == id)
+                    return false;
+            }
+
+            queue.Enqueue(id);
+            return true;
         }
         private bool CheckRequirementsMet(Quest quest)
         {
@@ -142,19 +233,21 @@ namespace jeanf.questsystem
             // check quest prerequisites for completion
             foreach (QuestSO prerequisiteQuestInfo in quest.questSO.questPrerequisites)
             {
-                if (GetQuestById(prerequisiteQuestInfo.id).state != QuestState.FINISHED)
-                {
+                var prerequisite = GetQuestById(prerequisiteQuestInfo.id);
+                if (prerequisite == null || prerequisite.state != QuestState.FINISHED)
                     meetsRequirements = false;
-                }
             }
 
-            if (isDebug) Debug.Log($"checking requirements for quest: {quest.questSO.name}, [{quest.questSO.id}], meetsRequirements: {meetsRequirements}");
+            if (isDebug) Debug.Log($"[QuestManager] checking requirements for quest: {quest.questSO.name}, [{quest.questSO.id}], meetsRequirements: {meetsRequirements}");
 
             return meetsRequirements;
         }
         private void ChangeQuestState(string id, QuestState state)
         {
-            Quest quest = GetQuestById(id);
+            var quest = GetQuestById(id);
+            if (quest == null)
+                return;
+
             quest.state = state;
             GameEventsManager.instance.questEvents.QuestStateChange(quest);
         }
@@ -163,30 +256,60 @@ namespace jeanf.questsystem
         #region main process
         private void StartQuest(string id)
         {
-            Quest quest = GetQuestById(id);
+            if (!QuestCatalogue.IsReady || questMap == null)
+            {
+                if (EnqueueUnique(_pendingStartQuestIds, id) && isDebug)
+                    Debug.Log($"[QuestManager] StartQuest deferred until catalogue is ready: {id}");
+                return;
+            }
+
+            StartQuestCore(id);
+        }
+
+        private void StartQuestCore(string id)
+        {
+            var quest = GetQuestById(id);
+            if (quest == null)
+                return;
+
             ChangeQuestState(quest.questSO.id, QuestState.IN_PROGRESS);
             SaveQuest(quest);
             if (!quest.sendMessageOnInitialization) return;
             quest.messageChannel.RaiseEvent(quest.messageToSendOnInit);
-            if(isDebug) Debug.Log($"quest id:{id}  started, a message was attatched to the initialization: {quest.messageToSendOnInit}");
+            if (isDebug)
+                Debug.Log($"[QuestManager] quest id:{id} started, message on init: {quest.messageToSendOnInit}");
         }
         private void UpdateProgress(Quest quest)
         {
             var progress = 0;
-            if (quest.questSO.id == null) Debug.Log("C'est null");;
-            if (isDebug) Debug.Log($"[{quest.questSO.id}] progress: {progress * 100}%", this);
+            if (quest.questSO.id == null) Debug.LogError("[QuestManager] quest.questSO.id is null");
+            if (isDebug) Debug.Log($"[QuestManager] [{quest.questSO.id}] progress: {progress * 100}%", this);
             questProgress.RaiseEvent(quest.questSO.id, progress);
         }
         private void FinishQuest(string id)
         {
-            Quest quest = GetQuestById(id);
+            if (!QuestCatalogue.IsReady || questMap == null)
+            {
+                if (EnqueueUnique(_pendingFinishQuestIds, id) && isDebug)
+                    Debug.Log($"[QuestManager] FinishQuest deferred until catalogue is ready: {id}");
+                return;
+            }
+
+            FinishQuestCore(id);
+        }
+
+        private void FinishQuestCore(string id)
+        {
+            var quest = GetQuestById(id);
+            if (quest == null)
+                return;
+
             UpdateProgress(quest);
             ClaimRewards(quest);
             ChangeQuestState(quest.questSO.id, QuestState.FINISHED);
             questStatusUpdateChannel.RaiseEvent(quest.questSO.id);
             questProgress.RaiseEvent(quest.questSO.id, 1);
             SaveQuest(quest);
-            if (!quest.sendMessageOnFinish) return;
         }
         #endregion
 
@@ -225,7 +348,7 @@ namespace jeanf.questsystem
         }
         private Quest LoadQuest(QuestSO questSO)
         {
-            //Debug.Log($"attempting to load quest with id: [{questSO.id}]");
+            if (isDebug) Debug.Log($"[QuestManager] attempting to load quest with id: [{questSO.id}]");
             var quest = new Quest(questSO);
             try
             {
@@ -235,18 +358,18 @@ namespace jeanf.questsystem
                     var serializedData = PlayerPrefs.GetString(questSO.id);
                     var questData = JsonUtility.FromJson<QuestData>(serializedData);
                     quest = new Quest(questSO, questData.state, questData.questStepIndex, questData.questStepStates); 
-                    //Debug.Log($"loaded previously saved quest with id: [{quest.questSO.id}]");
+                    if (isDebug) Debug.Log($"[QuestManager] loaded previously saved quest with id: [{quest.questSO.id}]");
                 }
                 // otherwise, initialize a new quest
                 else
                 {
                     quest = new Quest(questSO);
-                    //Debug.Log($"loaded a fresh instance of quest with id: [{quest.questSO.id}]");
+                    if (isDebug) Debug.Log($"[QuestManager] loaded a fresh instance of quest with id: [{quest.questSO.id}]");
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                //Debug.LogError($"Failed to load quest with id: [{quest.questSO.id}] - exception: {e}");
+                Debug.LogError($"[QuestManager] Failed to load quest with id: [{quest.questSO.id}] - exception: {e}");
             }
 
             return quest;
@@ -268,7 +391,7 @@ namespace jeanf.questsystem
             
             if (QuestInitialCheck == null)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestInitialCheck in {searchLocation}", this);
+                if (isDebug) Debug.Log($"[QuestManager] {searching} {_}/QuestInitialCheck in {searchLocation}", this);
                 QuestInitialCheck = Resources.Load<StringEventChannelSO>($"{_}/QuestInitialCheck");
                 if (QuestInitialCheck == null)
                 {
@@ -280,7 +403,7 @@ namespace jeanf.questsystem
             
             if (questStatusUpdateChannel == null)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestStatusUpdate in {searchLocation}", this);
+                if (isDebug) Debug.Log($"[QuestManager] {searching} {_}/QuestStatusUpdate in {searchLocation}", this);
                 questStatusUpdateChannel = Resources.Load<StringEventChannelSO>($"{_}/QuestStatusUpdate");
                 if (questStatusUpdateChannel == null)
                 {
@@ -292,7 +415,7 @@ namespace jeanf.questsystem
             
             if (questProgress == null)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestsProgressChannel in {searchLocation}", this);
+                if (isDebug) Debug.Log($"[QuestManager] {searching} {_}/QuestsProgressChannel in {searchLocation}", this);
                 questProgress = Resources.Load<StringFloatEventChannelSO>($"{_}/QuestsProgressChannel");
                 if (questProgress == null)
                 {
@@ -304,7 +427,7 @@ namespace jeanf.questsystem
             
             if (questStatusUpdateRequested == null)
             {
-                if (isDebug) Debug.Log($"{searching} {_}/QuestRequirementCheck in {searchLocation}", this);
+                if (isDebug) Debug.Log($"[QuestManager] {searching} {_}/QuestRequirementCheck in {searchLocation}", this);
                 questStatusUpdateRequested = Resources.Load<StringEventChannelSO>($"{_}/QuestRequirementCheck");
                 if (questStatusUpdateRequested == null)
                 {
@@ -320,7 +443,7 @@ namespace jeanf.questsystem
             if (IsValid && !Application.isPlaying) return;
             for(var i = 0 ; i < invalidObjects.Count ; i++)
             {
-                Debug.LogError($"Error: {errorMessages[i]} " , this.gameObject);
+                Debug.LogError($"[QuestManager] Error: {errorMessages[i]} " , this.gameObject);
             }
         }
         public void OnValidate()
