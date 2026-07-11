@@ -65,7 +65,7 @@ namespace jeanf.questsystem
         [SerializeField, DrawIf("isTimed", true, ComparisonType.Equals, DisablingType.DontDraw)] float timerDuration;
         [SerializeField, DrawIf("isTimed", true, ComparisonType.Equals, DisablingType.ReadOnly)] float time;
         #region standard unity methods
-        public void OnEnable()
+        public virtual void OnEnable()
         {
             Subscribe();
             InitializeQuestStep();

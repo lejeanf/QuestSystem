@@ -326,7 +326,6 @@ namespace jeanf.questsystem
 #endif
         private void ValidityCheck()
         {
-            const string searching = "attempting to find";
             const string _ = "Quests/Channels"; // search target
             const string searchLocation = "the resources folder";
             const string readInstructions = "please read the package instruction for further help";

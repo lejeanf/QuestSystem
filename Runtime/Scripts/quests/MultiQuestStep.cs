@@ -8,7 +8,7 @@ namespace jeanf.questsystem
     {
         [SerializeField] List<QuestStep> steps = new List<QuestStep>();
         [SerializeField] Dictionary<string, QuestStep> stepsDictionary = new Dictionary<string, QuestStep>();
-        private void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
             foreach(QuestStep step in steps)
@@ -18,13 +18,14 @@ namespace jeanf.questsystem
                 stepsDictionary.Add(step.StepId, step);
             }
 
-            stepCompleted += str => RemoveStepFromBundle(str);
+            // Named handler: unsubscribing a fresh lambda never detaches.
+            stepCompleted += RemoveStepFromBundle;
         }
 
         protected override void Unsubscribe()
         {
             base.Unsubscribe();
-            stepCompleted -= str => RemoveStepFromBundle(str);
+            stepCompleted -= RemoveStepFromBundle;
         }
 
         private void RemoveStepFromBundle(string stepId)

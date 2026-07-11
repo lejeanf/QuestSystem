@@ -341,7 +341,7 @@ namespace jeanf.questsystem
                 // instead, use an actual Save & Load system and write to a file, the cloud, etc..
                 PlayerPrefs.SetString(quest.questSO.id, serializedData);
             }
-            catch (System.Exception e)
+            catch (System.Exception)
             {
                 //Debug.LogError("Failed to save quest with id " + quest.questSO.id + ": " + e);
             }
