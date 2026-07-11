@@ -1,0 +1,19 @@
+{
+    "name": "jeanf.QuestSystem.editor",
+    "rootNamespace": "",
+    "references": [
+        "jeanf.questSystem",
+        "jeanf.eventsystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -5,7 +5,9 @@ using UnityEngine;
 using UnityEngine.Playables;
 using System.Collections.Generic;
 using jeanf.validationTools;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace jeanf.questsystem
 {
