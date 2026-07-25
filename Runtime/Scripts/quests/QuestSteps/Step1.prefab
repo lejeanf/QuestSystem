@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &314887600268591011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4640783405665628373}
+  - component: {fileID: 1707324871613896094}
+  m_Layer: 0
+  m_Name: Step1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4640783405665628373
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314887600268591011}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1707324871613896094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314887600268591011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc0c13d52c7a929438d051d9a1ddb092, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: jeanf.questSystem::jeanf.questsystem.MultiQuestStep
+  stepId: 7b0b2aa2-ae38-4172-b03b-00cf5fe7f1ce
+  stepStatus: 0
+  isUsingIntroTimeline: 0
+  _timelineTriggerEventChannelSo: {fileID: 0}
+  timeline: {fileID: 0}
+  questStepsToTrigger:
+  - {fileID: 1707324871613896094}
+  questStepsTriggeredOnFailure: []
+  questTooltipSO: {fileID: 0}
+  sendQuestStepTooltip: {fileID: 0}
+  stepValidationOverride: {fileID: 0}
+  endStepChannel: {fileID: 0}
+  isTimed: 0
+  timerDuration: 0
+  time: 0
+  steps: []
