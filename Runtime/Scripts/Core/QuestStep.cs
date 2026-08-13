@@ -82,9 +82,9 @@ namespace jeanf.questsystem
                 }
             }
         }
-        public void OnDisable() => Unsubscribe();
+        public virtual void OnDisable() => Unsubscribe();
 
-        public void OnDestroy() => Unsubscribe();
+        public virtual void OnDestroy() => Unsubscribe();
 
         private void Subscribe()
         {
