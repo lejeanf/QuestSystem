@@ -173,7 +173,6 @@ MonoBehaviour:
   QuestProgress: {fileID: 11400000, guid: d6b05e1957994c8449fb72e849a2a3d6, type: 2}
   QuestInitialCheck: {fileID: 11400000, guid: 4f5235d1ff779064cabee9ca65296d7f, type: 2}
   requirementCheck: {fileID: 11400000, guid: 761bb67b49c095c4fba02323c1765cea, type: 2}
-  loadRequiredScenesEventChannel: {fileID: 11400000, guid: 17c54a4f105b7a14bb607e54da71fc40,
-    type: 2}
+  loadRequiredScenesEventChannel: {fileID: 0}
   unlockDoorsEventChannel: {fileID: 11400000, guid: 76a77d28fad73eb4781652c80f5cbaa7,
     type: 2}
